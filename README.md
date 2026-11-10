@@ -40,11 +40,15 @@ Exclusivo no painel do Gerente (**Allan Santos**):
 
 ---
 
-## 🚀 Cadastro Auto-alimentável (Sem Responsável Manual)
+## 🚀 Cadastro Auto-alimentável (Cliente na Iniciativa & Sem Responsável Manual)
 
-- O sistema foi projetado para ser **auto-alimentável**:
-  - Ao clicar em **"+ Novo Projeto"**, o formulário solicita apenas **Cliente**, **Área / Categoria**, **Prazo Estimado (com opção de Indeterminado)**, **Status Inicial** e **Escopo**.
-  - O responsável é **atribuído automaticamente** ao usuário autenticado que está cadastrando o projeto (seja Carlos Souza, Beatriz Prugno ou Allan Santos).
+- **Cadastro de Usuário Simplificado**:
+  - Na tela de login / criação de acesso, **não é solicitado cliente ou local de atuação**. O usuário informa apenas Nome, Usuário, E-mail, Cargo e Senha.
+- **Seleção de Cliente ao Criar a Iniciativa**:
+  - No modal **"+ Novo Projeto"**, o usuário seleciona o Cliente entre as opções rápidas: **Santander**, **Vivo**, **XP**, **Allan** ou **Outros**.
+  - Ao selecionar **Outros**, um campo de texto é exibido para digitar o nome do cliente/local personalizado.
+- **Responsável Automático**:
+  - O projeto é **atribuído automaticamente** ao usuário autenticado que está cadastrando a iniciativa (auto-alimentável, sem necessidade de selecionar responsável em lista).
 
 ---
 

@@ -11,6 +11,7 @@ Resumo das Atualizações Recentes:
 2. CADASTRO AUTO-ALIMENTÁVEL DE INICIATIVAS (SEM CAMPO DE RESPONSÁVEL)
    - Ao criar uma nova iniciativa (+ Novo Projeto), não é mais necessário selecionar o responsável.
    - O projeto é atribuído automaticamente a quem estiver autenticado no momento.
+   - O campo "Cliente" não fica mais no cadastro do usuário; agora é selecionado diretamente no projeto (Santander, Vivo, XP, Allan, Outros). Ao escolher "Outros", abre campo de texto para digitar o nome do cliente.
 
 3. NOTIFICAÇÕES DO ALLAN NO CANTINHO (POPOVER DISCRETO)
    - As notificações não cobrem mais o meio da tela.

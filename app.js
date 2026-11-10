@@ -1,6 +1,6 @@
 const GOVERNANCE_KEY = 'GOV2026';
 const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 min de inatividade
-const STORAGE_PREFIX = 'allan_santos_gov_v7_';
+const STORAGE_PREFIX = 'allan_santos_gov_v8_';
 
 const STORAGE_KEYS = {
   USERS: `${STORAGE_PREFIX}users`,
@@ -355,7 +355,7 @@ function renderNotificationsList() {
       <div class="flex items-center justify-between gap-2 mb-1">
         <div class="flex items-center gap-1.5">
           <span class="font-bold text-slate-900">${sanitize(n.author)}</span>
-          <span class="text-[10px] text-slate-500">(${sanitize(n.role)} &bull; ${sanitize(n.client)})</span>
+          <span class="text-[10px] text-slate-500">(${sanitize(n.role)})</span>
           <span class="text-[10px] font-semibold px-1.5 py-0.2 rounded border ${badgeColor}">${sanitize(n.changeType)}</span>
         </div>
         <span class="text-[10px] font-mono text-slate-500 shrink-0">${sanitize(n.date)}</span>
@@ -411,7 +411,7 @@ function handleLoginSubmit(event) {
   createSession(user);
 }
 
-// Cadastro cria usuário com nome, usuário, e-mail, cargo, local e senha
+// Cadastro simplificado: cria usuário SEM necessidade de cliente (cliente é escolhido ao criar projeto)
 function handleRegisterSubmit(event) {
   event.preventDefault();
   const name = document.getElementById('reg-name')?.value.trim();
@@ -421,8 +421,6 @@ function handleRegisterSubmit(event) {
   const govToken = document.getElementById('reg-gov-token')?.value.trim();
   const password = document.getElementById('reg-password')?.value;
   const passwordConfirm = document.getElementById('reg-password-confirm')?.value;
-  const clientSelect = document.getElementById('reg-client-select')?.value;
-  const clientCustom = document.getElementById('reg-client-custom')?.value.trim();
 
   if (!name || !username || !email || !password) {
     showToast('Preencha todos os campos obrigatórios.', 'warning');
@@ -460,18 +458,12 @@ function handleRegisterSubmit(event) {
     }
   }
 
-  let finalClient = clientSelect;
-  if (clientSelect === 'Outros') {
-    finalClient = clientCustom || 'Outros';
-  }
-
   const newUser = {
     id: 'usr_' + Date.now(),
     name: name,
     username: username,
     email: email,
     role: finalRole,
-    client: finalClient,
     password: password
   };
 
@@ -480,7 +472,7 @@ function handleRegisterSubmit(event) {
   populateResponsibleOptions();
   populateClientFilterOptions();
 
-  showToast(`Conta criada com sucesso: ${username} (${finalRole} - ${finalClient}).`, 'success');
+  showToast(`Conta criada com sucesso: ${username} (${finalRole}).`, 'success');
   createSession(newUser);
 }
 
@@ -876,7 +868,7 @@ function renderColaboradorView() {
         </button>
         <button 
           onclick="handleDeleteProject('${project.id}')"
-          title="Remover projeto incorreto"
+          title="Remover projeto incorreto" 
           class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded border border-slate-200 hover:border-rose-300 transition"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -896,9 +888,11 @@ function toggleUpdateIndefiniteDeadline(isIndefinite) {
   if (isIndefinite) {
     dateInput.value = '';
     dateInput.disabled = true;
+    dateInput.required = false;
     dateInput.classList.add('opacity-50', 'bg-slate-200');
   } else {
     dateInput.disabled = false;
+    dateInput.required = true;
     dateInput.classList.remove('opacity-50', 'bg-slate-200');
     const defaultDate = new Date();
     defaultDate.setDate(defaultDate.getDate() + 30);
@@ -1074,6 +1068,20 @@ function handleDeleteProject(projectId) {
   showToast(`Projeto ${project.id} removido com sucesso.`, 'info');
 }
 
+// Alterna exibicao do campo de texto quando o cliente selecionado for "Outros"
+function toggleNewProjectClientCustom(val) {
+  const customField = document.getElementById('field-new-project-client-custom');
+  const customInput = document.getElementById('new-project-client-custom');
+  if (!customField) return;
+  if (val === 'Outros') {
+    customField.classList.remove('hidden');
+    if (customInput) customInput.focus();
+  } else {
+    customField.classList.add('hidden');
+    if (customInput) customInput.value = '';
+  }
+}
+
 // Controle de prazo indeterminado no modal de criacao
 function toggleIndefiniteDeadline(isIndefinite) {
   const dateInput = document.getElementById('new-project-deadline');
@@ -1109,23 +1117,26 @@ function openNewProjectModal() {
     dateInput.value = defaultDate.toISOString().split('T')[0];
   }
 
-  const clientInput = document.getElementById('new-project-client');
-  if (clientInput) {
-    if (AppState.session.user.client && AppState.session.user.client !== 'Geral') {
-      clientInput.value = AppState.session.user.client;
-    } else {
-      clientInput.value = '';
-    }
+  // Reseta selecao de cliente (Santander por padrao, Outros oculto)
+  const clientSelect = document.getElementById('new-project-client-select');
+  if (clientSelect) {
+    clientSelect.value = 'Santander';
+    toggleNewProjectClientCustom('Santander');
   }
 
   openModal('modal-new-project');
 }
 
-// Criar nova iniciativa: Responsavel e atribuido automaticamente ao usuario logado
+// Criar nova iniciativa: Cliente e selecionado aqui (Santander, Vivo, XP, Outros) e Responsavel e automatico
 function handleCreateProject(event) {
   event.preventDefault();
   const title = document.getElementById('new-project-title').value.trim();
-  const client = document.getElementById('new-project-client').value.trim() || 'Geral';
+  
+  // Leitura do cliente com regra de "Outros"
+  const clientSelect = document.getElementById('new-project-client-select')?.value || 'Santander';
+  const clientCustom = document.getElementById('new-project-client-custom')?.value.trim();
+  const client = (clientSelect === 'Outros') ? (clientCustom || 'Outros') : clientSelect;
+
   const category = document.getElementById('new-project-category').value.trim() || 'Geral';
   const isIndefinite = document.getElementById('new-project-indefinite')?.checked;
   const deadlineInput = document.getElementById('new-project-deadline');
@@ -1171,6 +1182,7 @@ function handleCreateProject(event) {
   closeModal('modal-new-project');
   document.getElementById('form-new-project').reset();
   toggleIndefiniteDeadline(false);
+  toggleNewProjectClientCustom('Santander');
 
   // Notificacao de novo projeto criado
   addNotification({
@@ -1182,7 +1194,7 @@ function handleCreateProject(event) {
     projectTitle: title,
     date: getFormattedNow(),
     changeType: 'Novo Projeto',
-    details: `Iniciativa cadastrada no portfólio • Prazo: ${formatDateBR(deadline)}`,
+    details: `Iniciativa cadastrada no portfólio para o cliente ${client} • Prazo: ${formatDateBR(deadline)}`,
     message: description || 'Novo projeto cadastrado.',
     isNew: true
   });
@@ -1195,7 +1207,7 @@ function handleCreateProject(event) {
     renderColaboradorView();
   }
 
-  showToast(`Projeto ${newProjId} cadastrado com sucesso.`, 'success');
+  showToast(`Projeto ${newProjId} cadastrado com sucesso (${client}).`, 'success');
 }
 
 function openProjectDetailModal(projectId) {
@@ -1388,25 +1400,10 @@ function setupEventListeners() {
     });
   }
 
-  // Caixa de texto adicional so aparece se a opcao for "Outros"
-  const regClientSelect = document.getElementById('reg-client-select');
-  const fieldRegClientCustom = document.getElementById('field-reg-client-custom');
-  const regClientCustom = document.getElementById('reg-client-custom');
-
-  if (regClientSelect && fieldRegClientCustom) {
-    regClientSelect.addEventListener('change', (e) => {
-      if (e.target.value === 'Outros') {
-        fieldRegClientCustom.classList.remove('hidden');
-        if (regClientCustom) {
-          regClientCustom.focus();
-        }
-      } else {
-        fieldRegClientCustom.classList.add('hidden');
-        if (regClientCustom) {
-          regClientCustom.value = '';
-        }
-      }
-    });
+  // Listener para selecao de cliente em "+ Novo Projeto"
+  const npClientSelect = document.getElementById('new-project-client-select');
+  if (npClientSelect) {
+    npClientSelect.addEventListener('change', (e) => toggleNewProjectClientCustom(e.target.value));
   }
 
   const modalRange = document.getElementById('modal-update-range');
