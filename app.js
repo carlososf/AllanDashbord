@@ -1,6 +1,6 @@
 const GOVERNANCE_KEY = 'GOV2026';
 const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 min de inatividade
-const STORAGE_PREFIX = 'allan_santos_gov_v6_';
+const STORAGE_PREFIX = 'allan_santos_gov_v7_';
 
 const STORAGE_KEYS = {
   USERS: `${STORAGE_PREFIX}users`,
@@ -10,7 +10,7 @@ const STORAGE_KEYS = {
   SECURITY_LOGS: `${STORAGE_PREFIX}security_logs`
 };
 
-// equipe oficial de teste solicitada
+// equipe oficial de teste solicitada (CarlosSouza como usuario)
 const INITIAL_USERS = [
   {
     id: 'usr_001',
@@ -24,7 +24,7 @@ const INITIAL_USERS = [
   {
     id: 'usr_002',
     name: 'Carlos Souza',
-    username: 'UsuarioCarlosSouza',
+    username: 'CarlosSouza',
     email: 'carlos.souza@empresa.com',
     role: 'Trainee',
     client: 'Allan',
@@ -41,7 +41,7 @@ const INITIAL_USERS = [
   }
 ];
 
-// projetos iniciais solicitados (com edicao solicitada para Beatriz Prugno)
+// projetos iniciais oficiais
 const INITIAL_PROJECTS = [
   {
     id: 'PRJ-2026-001',
@@ -50,7 +50,7 @@ const INITIAL_PROJECTS = [
     category: 'Governança & Business Intelligence',
     description: 'Construção e sustentação do painel executivo corporativo para monitoramento contínuo do portfólio de iniciativas e indicadores agregados de entrega.',
     responsibleName: 'Carlos Souza',
-    responsibleUsername: 'UsuarioCarlosSouza',
+    responsibleUsername: 'CarlosSouza',
     responsibleEmail: 'carlos.souza@empresa.com',
     status: 'Em Andamento',
     progress: 75,
@@ -103,7 +103,7 @@ const INITIAL_PROJECTS = [
   }
 ];
 
-// notificacoes iniciais para o painel executivo do Allan
+// notificacoes para o painel executivo do Allan (no cantinho)
 const INITIAL_NOTIFICATIONS = [
   {
     id: 'notif_001',
@@ -294,6 +294,14 @@ function saveNotificationsData() {
   localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(AppState.notifications));
 }
 
+// Controle do popover de notificacoes no cantinho
+function toggleNotificationsPopover() {
+  const popover = document.getElementById('popover-gerente-notifications');
+  if (popover) {
+    popover.classList.toggle('hidden');
+  }
+}
+
 // Notificacoes para o painel do Allan
 function addNotification(notif) {
   AppState.notifications.unshift(notif);
@@ -326,7 +334,7 @@ function renderNotificationsList() {
   if (count === 0) {
     container.innerHTML = `
       <div class="p-3 text-center text-xs text-slate-500 italic bg-slate-50 rounded border border-slate-100">
-        Nenhuma notificação recente pendente.
+        Nenhuma nova notificação.
       </div>
     `;
     return;
@@ -367,7 +375,7 @@ function renderNotificationsList() {
   });
 }
 
-// Login aceita tanto usuário quanto e-mail corporativo
+// Login aceita tanto usuário quanto e-mail corporativo (CarlosSouza ou UsuarioCarlosSouza)
 function handleLoginSubmit(event) {
   event.preventDefault();
   const credential = (document.getElementById('login-credential')?.value || '').trim();
@@ -378,10 +386,15 @@ function handleLoginSubmit(event) {
     return;
   }
 
-  const user = AppState.users.find(u => 
-    (u.username && u.username.toLowerCase() === credential.toLowerCase()) ||
-    (u.email && u.email.toLowerCase() === credential.toLowerCase())
-  );
+  const user = AppState.users.find(u => {
+    const un = (u.username || '').toLowerCase();
+    const cred = credential.toLowerCase();
+    const matchUser = (un === cred) || 
+                      (un === 'carlossouza' && cred === 'usuariocarlossouza') || 
+                      (un === 'usuariocarlossouza' && cred === 'carlossouza');
+    const matchEmail = (u.email || '').toLowerCase() === cred;
+    return matchUser || matchEmail;
+  });
 
   if (!user) {
     recordSecurityIncident('LOGIN_FALHOU', `Tentativa de login inexistente: ${credential}`);
@@ -531,7 +544,7 @@ function handleForceLogout(reason) {
   showToast(reason || 'Sessão encerrada.', 'warning');
 }
 
-// Visao especial para gerente: painel redondo de governanca e notificacoes
+// Visao especial para gerente: painel redondo de governanca e notificacoes no cantinho
 function renderGerenteView() {
   if (!checkAccessPermission('Gerente')) {
     return;
@@ -1096,11 +1109,6 @@ function openNewProjectModal() {
     dateInput.value = defaultDate.toISOString().split('T')[0];
   }
 
-  const respSelect = document.getElementById('new-project-resp');
-  if (respSelect) {
-    respSelect.value = AppState.session.user.email;
-  }
-
   const clientInput = document.getElementById('new-project-client');
   if (clientInput) {
     if (AppState.session.user.client && AppState.session.user.client !== 'Geral') {
@@ -1113,6 +1121,7 @@ function openNewProjectModal() {
   openModal('modal-new-project');
 }
 
+// Criar nova iniciativa: Responsavel e atribuido automaticamente ao usuario logado
 function handleCreateProject(event) {
   event.preventDefault();
   const title = document.getElementById('new-project-title').value.trim();
@@ -1121,7 +1130,6 @@ function handleCreateProject(event) {
   const isIndefinite = document.getElementById('new-project-indefinite')?.checked;
   const deadlineInput = document.getElementById('new-project-deadline');
   const deadline = isIndefinite ? 'Indeterminado' : deadlineInput.value;
-  const respEmail = document.getElementById('new-project-resp').value;
   const health = document.getElementById('new-project-health').value;
   const description = document.getElementById('new-project-desc').value.trim();
 
@@ -1130,7 +1138,8 @@ function handleCreateProject(event) {
     return;
   }
 
-  const respUser = AppState.users.find(u => u.email.toLowerCase() === respEmail.toLowerCase()) || AppState.session.user;
+  // O criador da iniciativa e automaticamente o responsavel (auto-alimentavel)
+  const respUser = AppState.session?.user || AppState.users[0];
   const newProjId = 'PRJ-' + new Date().getFullYear() + '-' + String(AppState.projects.length + 1).padStart(3, '0');
 
   const newProject = {
@@ -1141,7 +1150,7 @@ function handleCreateProject(event) {
     description: description,
     responsibleName: respUser.name,
     responsibleUsername: respUser.username || '',
-    responsibleEmail: respEmail,
+    responsibleEmail: respUser.email,
     status: 'Em Andamento',
     progress: 0,
     health: health,
@@ -1149,8 +1158,8 @@ function handleCreateProject(event) {
     weeklyNotes: 'Iniciativa cadastrada no portfólio.',
     comments: [
       {
-        author: AppState.session?.user?.name || 'Sistema',
-        role: AppState.session?.user?.role || 'Colaborador',
+        author: respUser.name,
+        role: respUser.role,
         date: getFormattedNow(),
         text: `Projeto cadastrado para o cliente ${client}.`
       }
@@ -1450,21 +1459,7 @@ function closeModal(id) {
 }
 
 function populateResponsibleOptions() {
-  const select = document.getElementById('new-project-resp');
   const filterSelect = document.getElementById('table-filter-colab');
-
-  if (select) {
-    select.innerHTML = '';
-    AppState.users.forEach(u => {
-      const opt = document.createElement('option');
-      opt.value = u.email;
-      opt.textContent = `${u.name} (${u.role})`;
-      select.appendChild(opt);
-    });
-    if (AppState.session && AppState.session.user) {
-      select.value = AppState.session.user.email;
-    }
-  }
 
   if (filterSelect) {
     filterSelect.innerHTML = '<option value="all">Todos os Responsáveis</option>';

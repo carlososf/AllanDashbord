@@ -2,38 +2,28 @@
 PROJETOS ALLAN SANTOS - PORTAL CORPORATIVO DE GOVERNANÇA E PROJETOS
 ================================================================================
 
-Resumo das Funcionalidades e Regras Implementadas:
+Resumo das Atualizações Recentes:
 
-1. CENTRAL DE NOTIFICAÇÕES (PAINEL DO ALLAN / GERENTE)
-   - Card dedicado no painel executivo com todas as novidades reportadas pela equipe.
-   - Exibe autor, cargo, cliente, projeto, alteração de status/prazo e mensagens justificativas.
-   - Contador de novidades e botão para limpar notificações.
+1. USUÁRIO CARLOS SOUZA
+   - Usuário oficial ajustado para: CarlosSouza
+   - Aceita no login tanto CarlosSouza quanto UsuarioCarlosSouza ou o e-mail corporativo.
 
-2. MUDANÇA DE PRAZO E STATUS COM MENSAGEM OPCIONAL
+2. CADASTRO AUTO-ALIMENTÁVEL DE INICIATIVAS (SEM CAMPO DE RESPONSÁVEL)
+   - Ao criar uma nova iniciativa (+ Novo Projeto), não é mais necessário selecionar o responsável.
+   - O projeto é atribuído automaticamente a quem estiver autenticado no momento.
+
+3. NOTIFICAÇÕES DO ALLAN NO CANTINHO (POPOVER DISCRETO)
+   - As notificações não cobrem mais o meio da tela.
+   - Foram movidas para um botão executivo com ícone de sino e badge de contagem no canto superior direito (ao lado de "+ Novo Projeto").
+   - Clicar nele abre uma janela compacta suspensa no cantinho com todas as mudanças da equipe.
+
+4. MUDANÇA DE PRAZO E STATUS COM MENSAGEM OPCIONAL
    - No modal "Atualizar Status", o colaborador pode:
      * Atualizar a porcentagem de progresso (0% a 100%).
      * Alterar o status (No Prazo, Em Atenção, Crítico).
      * Alterar a data de prazo ou marcar (Indeterminado).
      * Deixar uma mensagem opcional justificando a alteração de prazo.
    - Toda alteração alimenta o histórico de comentários do projeto e gera notificação automática para o Allan.
-
-3. ACESSO E AUTENTICAÇÃO (LOGIN & CADASTRO)
-   - O login e o cadastro aceitam tanto o Nome de Usuário (Ex: AllanSantos) quanto o E-mail corporativo.
-   - O cadastro possui os campos:
-     * Nome Completo
-     * Nome de Usuário
-     * E-mail Corporativo
-     * Cargo: Trainee, Especialista, Senior e Gerente
-     * Local de Atuação / Cliente: Santander, Vivo, XP, Allan, Outros
-       REGRA: O campo de texto para digitar o nome do cliente SÓ APARECE se a opção selecionada for "Outros".
-     * Chave de Governança corporativa (obrigatória apenas se Gerente): GOV2026
-     * Senha e Confirmação de Senha
-
-4. PROJETO DE BEATRIZ PRUGNO (ATUALIZADO)
-   - Título: PMO riscos TI Santander
-   - Descrição: Cobranças diarias de demandas, entre ela: Runtime, CNJP, APIGEE
-   - Prazo: Indeterminado
-   - Status: Em Atenção (85%)
 
 ================================================================================
 USUÁRIOS DE TESTE OFICIAIS (CREDENCIAIS PRONTAS):
@@ -44,10 +34,10 @@ USUÁRIOS DE TESTE OFICIAIS (CREDENCIAIS PRONTAS):
    E-mail: allan.santos@empresa.com
    Cargo: Gerente (Cliente: Allan)
    Senha: 12345
-   Acesso: Visão Especial com Dashboard Circular, Tabela Geral e Central de Notificações
+   Acesso: Visão Especial com Dashboard Circular, Tabela Geral e Notificações no Cantinho
 
 2) TRAINEE
-   Usuário: UsuarioCarlosSouza
+   Usuário: CarlosSouza
    E-mail: carlos.souza@empresa.com
    Cargo: Trainee (Cliente: Allan)
    Senha: 54321
