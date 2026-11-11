@@ -3,1000 +3,614 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Projetos Allan Santos - Portal Corporativo de Governança</title>
-  
-  <script src="https://cdn.tailwindcss.com"></script>
-  
+  <title>Projetos Allan Santos — Portal de Governança</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between selection:bg-blue-100 selection:text-blue-900">
+<body>
 
-  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+  <!-- ============================================================
+       TELA DE LOGIN
+       ============================================================ -->
+  <div id="login-screen">
+    <div class="login-card">
+      <!-- Logo com fallback limpo -->
+      <img src="mslogo.png" alt="Logo" class="login-logo"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="login-logo-fallback" style="display:none;">AS</div>
 
-  <!-- tela de autenticacao -->
-  <section id="screen-login" class="flex-1 flex items-center justify-center p-4">
-    <div class="w-full max-w-md">
-      
-      <div class="bg-white border border-slate-300 rounded-md shadow-xs p-6 sm:p-7">
-        
-        <div class="text-center pb-5 border-b border-slate-200">
-          <div class="flex items-center justify-center mb-3">
-            <img 
-              id="login-logo-img" 
-              src="mslogo.png" 
-              alt="Logo Allan Santos" 
-              class="max-h-12 max-w-[170px] object-contain"
-              onerror="this.style.display='none'; document.getElementById('login-logo-fallback').classList.remove('hidden');"
-            />
-            <div id="login-logo-fallback" class="hidden flex items-center justify-center w-11 h-11 rounded bg-slate-900 text-white font-bold text-sm tracking-wider">
-              AS
-            </div>
-          </div>
-          <h1 class="text-lg font-bold text-slate-900 tracking-tight">Projetos Allan Santos</h1>
-          <p class="text-xs text-slate-500 mt-0.5">Portal de Acompanhamento e Governança de Projetos</p>
+      <h1 class="login-title">Projetos Allan Santos</h1>
+      <p class="login-subtitle">Portal de Governança e Acompanhamento de Projetos</p>
+
+      <!-- Formulário de Login -->
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label" for="login-username">Usuário ou E-mail</label>
+          <input class="form-input" type="text" id="login-username" placeholder="Ex: AllanSantos" required autocomplete="username">
         </div>
-
-        <div class="grid grid-cols-2 p-1 bg-slate-100 rounded border border-slate-200 my-5">
-          <button 
-            id="tab-btn-login" 
-            type="button"
-            class="py-1.5 text-xs font-semibold rounded bg-white text-blue-700 shadow-xs"
-          >
-            Entrar
-          </button>
-          <button 
-            id="tab-btn-register" 
-            type="button"
-            class="py-1.5 text-xs font-medium rounded text-slate-600 hover:text-slate-900"
-          >
-            Criar Acesso
-          </button>
+        <div class="form-group">
+          <label class="form-label" for="login-password">Senha</label>
+          <input class="form-input" type="password" id="login-password" placeholder="••••••" required autocomplete="current-password">
         </div>
+        <button type="submit" class="btn-primary w-full">Entrar</button>
+        <div id="login-error" class="login-error hidden"></div>
+      </form>
 
-        <form id="form-login" onsubmit="handleLoginSubmit(event)" class="space-y-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1" for="login-credential">
-              Usuário ou E-mail Corporativo
-            </label>
-            <input 
-              id="login-credential" 
-              type="text" 
-              required 
-              placeholder="Ex: AllanSantos, CarlosSouza ou seu e-mail" 
-              value="AllanSantos"
-              class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700"
-            >
-          </div>
+      <!-- Formulário de Registro (oculto) -->
+      <form id="register-form" class="hidden" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label class="form-label" for="register-name">Nome Completo</label>
+          <input class="form-input" type="text" id="register-name" placeholder="Ex: João Silva" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="register-email">E-mail</label>
+          <input class="form-input" type="email" id="register-email" placeholder="joao.silva@empresa.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="register-username">Usuário</label>
+          <input class="form-input" type="text" id="register-username" placeholder="JoaoSilva" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="register-password">Senha</label>
+          <input class="form-input" type="password" id="register-password" placeholder="Mínimo 4 caracteres" required minlength="4">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="register-role">Perfil</label>
+          <select class="form-select" id="register-role" onchange="toggleManagerKeyField()">
+            <option value="Colaborador">Colaborador</option>
+            <option value="Gerente">Gerente</option>
+          </select>
+        </div>
+        <div id="register-manager-key-group" class="form-group hidden">
+          <label class="form-label" for="register-manager-key">Chave de Gerente</label>
+          <input class="form-input" type="text" id="register-manager-key" placeholder="Chave corporativa">
+          <p class="form-hint">Necessária para perfil Gerente.</p>
+        </div>
+        <button type="submit" class="btn-primary w-full">Criar Conta</button>
+        <div id="register-error" class="login-error hidden"></div>
+      </form>
 
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="block text-xs font-semibold text-slate-700" for="login-password">
-                Senha de Acesso
-              </label>
-              <button 
-                type="button" 
-                onclick="openModal('modal-forgot-password')" 
-                class="text-[11px] text-blue-700 hover:text-blue-900 hover:underline font-medium"
-              >
-                Esqueci minha senha
-              </button>
-            </div>
-            <input 
-              id="login-password" 
-              type="password" 
-              required 
-              placeholder="••••••••" 
-              value="12345"
-              class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700 font-mono"
-            >
-          </div>
-
-          <div class="flex items-center pt-0.5">
-            <label class="flex items-center gap-2 cursor-pointer select-none">
-              <input type="checkbox" checked class="w-3.5 h-3.5 rounded border-slate-300 text-blue-700 focus:ring-blue-600">
-              <span class="text-xs text-slate-600">Lembrar credencial neste navegador</span>
-            </label>
-          </div>
-
-          <button 
-            type="submit" 
-            class="w-full py-2.5 px-4 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white font-semibold text-xs rounded transition flex items-center justify-center gap-2 shadow-xs"
-          >
-            <span>Acessar Sistema</span>
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
-          </button>
-        </form>
-
-        <form id="form-register" onsubmit="handleRegisterSubmit(event)" class="space-y-3 hidden">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1" for="reg-name">
-              Nome Completo
-            </label>
-            <input 
-              id="reg-name" 
-              type="text" 
-              required 
-              placeholder="Ex: Carlos Souza" 
-              class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded text-slate-900 focus:outline-none focus:border-blue-700"
-            >
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1" for="reg-username">
-                Nome de Usuário
-              </label>
-              <input 
-                id="reg-username" 
-                type="text" 
-                required 
-                placeholder="Ex: UsuarioCarlosSouza" 
-                class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded text-slate-900 focus:outline-none focus:border-blue-700 font-mono"
-              >
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1" for="reg-email">
-                E-mail Corporativo
-              </label>
-              <input 
-                id="reg-email" 
-                type="email" 
-                required 
-                placeholder="carlos.souza@empresa.com" 
-                class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded text-slate-900 focus:outline-none focus:border-blue-700"
-              >
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1" for="reg-role">
-              Cargo
-            </label>
-            <select 
-              id="reg-role" 
-              class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded text-slate-900 focus:outline-none focus:border-blue-700"
-            >
-              <option value="Trainee">Trainee</option>
-              <option value="Especialista">Especialista</option>
-              <option value="Senior">Senior</option>
-              <option value="Gerente">Gerente</option>
-            </select>
-          </div>
-
-          <div id="field-gov-token" class="hidden p-2.5 bg-amber-50 rounded border border-amber-200">
-            <label class="block text-[11px] font-bold text-amber-900 mb-1" for="reg-gov-token">
-              Chave Corporativa de Governança (Obrigatória para Gerente)
-            </label>
-            <input 
-              id="reg-gov-token" 
-              type="password" 
-              placeholder="Ex: GOV2026" 
-              class="w-full px-2.5 py-1.5 text-xs bg-white border border-amber-300 rounded text-slate-900 font-mono focus:outline-none focus:border-amber-600"
-            >
-            <span class="text-[10px] text-amber-700 mt-1 block">
-              Fornecida pelo Comitê de Governança.
-            </span>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1" for="reg-password">
-                Senha
-              </label>
-              <input 
-                id="reg-password" 
-                type="password" 
-                required 
-                placeholder="••••••••" 
-                class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded text-slate-900 focus:outline-none focus:border-blue-700 font-mono"
-              >
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1" for="reg-password-confirm">
-                Confirmar Senha
-              </label>
-              <input 
-                id="reg-password-confirm" 
-                type="password" 
-                required 
-                placeholder="••••••••" 
-                class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded text-slate-900 focus:outline-none focus:border-blue-700 font-mono"
-              >
-            </div>
-          </div>
-
-          <button 
-            type="submit" 
-            class="w-full mt-2 py-2 px-4 bg-blue-700 hover:bg-blue-800 text-white font-semibold text-xs rounded transition flex items-center justify-center gap-1.5"
-          >
-            <span>Criar Minha Conta</span>
-          </button>
-        </form>
-
-      </div>
-
-      <div class="text-center mt-4 text-[11px] text-slate-500 font-normal">
-        Ambiente Corporativo Seguro &bull; Política de Governança Ativa
+      <div class="login-toggle">
+        <span id="login-toggle-text">Não tem conta?</span>
+        <button type="button" id="login-toggle-btn" onclick="toggleRegisterForm()">Cadastre-se</button>
       </div>
     </div>
-  </section>
+  </div>
 
-  <!-- painel principal -->
-  <div id="screen-app" class="hidden flex-col flex-1">
-    
-    <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-xs">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6">
-        <div class="flex items-center justify-between h-14">
-          
-          <div class="flex items-center gap-3">
-            <div class="flex items-center shrink-0">
-              <img 
-                id="nav-logo-img" 
-                src="mslogo.png" 
-                alt="Logo Allan Santos" 
-                class="max-h-7 max-w-[110px] object-contain invert brightness-0"
-                onerror="this.style.display='none'; document.getElementById('nav-logo-fallback').classList.remove('hidden');"
-              />
-              <div id="nav-logo-fallback" class="hidden flex items-center justify-center w-7 h-7 rounded bg-blue-700 text-white font-bold text-xs">
-                AS
-              </div>
-            </div>
+  <!-- ============================================================
+       APP SHELL (exibido após login)
+       ============================================================ -->
+  <div id="app-shell" class="hidden">
 
-            <div class="h-4 w-px bg-slate-700"></div>
+    <!-- HEADER INSTITUCIONAL -->
+    <header id="app-header">
+      <div class="header-left">
+        <img src="mslogo.png" alt="Logo" class="header-logo"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="header-logo-fallback" style="display:none;">AS</div>
+        <div class="header-divider"></div>
+        <span class="header-title">Projetos Allan Santos</span>
+      </div>
+      <div class="header-right">
+        <!-- Notificações -->
+        <button class="notif-btn" id="btn-toggle-notifs" onclick="toggleNotifications()" title="Notificações">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span id="notif-badge" class="notif-badge hidden">0</span>
+        </button>
 
-            <span class="font-bold text-sm sm:text-base tracking-tight text-slate-100">Projetos Allan Santos</span>
-          </div>
-
-          <div class="flex items-center gap-3">
-            <div class="hidden sm:flex items-center gap-1.5 session-status-badge">
-              <span class="session-pulse"></span>
-              <span>Sessão Ativa</span>
-            </div>
-
-            <div class="flex items-center gap-2 pl-3 border-l border-slate-700 text-left">
-              <div id="nav-user-avatar" class="w-7 h-7 rounded bg-slate-800 border border-slate-700 text-blue-400 font-bold text-xs flex items-center justify-center">
-                AS
-              </div>
-              <div class="hidden md:block leading-tight">
-                <div id="nav-user-name" class="text-xs font-semibold text-slate-200">Allan Santos</div>
-                <div id="nav-user-role" class="text-[10px] text-blue-300 font-medium">Gerente</div>
-              </div>
-
-              <button 
-                onclick="handleLogout()" 
-                title="Encerrar Sessão" 
-                class="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded transition ml-1"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
+        <div class="header-user-info">
+          <div class="header-user-name" id="header-username">—</div>
+          <div class="header-user-role" id="header-role">—</div>
         </div>
+
+        <button class="btn-secondary btn-sm" onclick="logout()">Sair</button>
       </div>
     </header>
 
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5">
-      
-      <!-- visao do gerente (especial para gerente) -->
-      <section id="view-gerente" class="space-y-4">
-        
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-slate-200">
-          <div>
-            <h2 class="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
-              Painel Executivo de Governança
-              <span class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.2 bg-blue-100 text-blue-800 rounded border border-blue-200">
-                Acesso Gerencial
-              </span>
-            </h2>
-            <p class="text-xs text-slate-500 mt-0.5">Visão consolidada por clientes (Allan, Santander, XP, Vivo), status operacional e notas de impedimento</p>
-          </div>
+    <!-- POPOVER DE NOTIFICAÇÕES -->
+    <div id="popover-notifications" class="notif-popover">
+      <div class="notif-popover-header">
+        <span>Notificações</span>
+        <button class="btn-icon" onclick="markAllRead()" title="Marcar todas como lidas">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </button>
+      </div>
+      <div class="notif-popover-body" id="notif-list"></div>
+    </div>
 
-          <div class="flex items-center gap-2">
-            <!-- NOTIFICAÇÕES DO ALLAN NO CANTINHO (POPOVER) -->
-            <div class="relative">
-              <button 
-                id="btn-toggle-notifs"
-                onclick="toggleNotificationsPopover()" 
-                type="button"
-                class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold text-xs rounded transition flex items-center gap-1.5 shadow-xs"
-              >
-                <svg class="w-3.5 h-3.5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-                <span>Notificações</span>
-                <span id="notif-badge-count" class="text-[10px] font-bold px-1.5 py-0.2 bg-blue-600 text-white rounded-full">0 novas</span>
-              </button>
+    <!-- ============================================================
+         VISÃO DO GERENTE
+         ============================================================ -->
+    <main id="view-gerente" class="section-main hidden">
 
-              <!-- Popover Flutuante no Cantinho (sem cobrir a tela) -->
-              <div id="popover-gerente-notifications" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-slate-300 rounded-md shadow-xl z-50 p-3">
-                <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
-                  <span class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-blue-600"></span>
-                    <span>Notificações & Mudanças</span>
-                  </span>
-                  <div class="flex items-center gap-2">
-                    <button type="button" onclick="clearAllNotifications()" class="text-[11px] text-slate-500 hover:text-slate-900 hover:underline">
-                      Limpar
-                    </button>
-                    <button type="button" onclick="toggleNotificationsPopover()" class="text-slate-400 hover:text-slate-700">
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                  </div>
-                </div>
-                <div id="notifications-list" class="space-y-2 max-h-72 overflow-y-auto pr-1">
-                  <!-- Itens de notificacao renderizados via JS -->
-                </div>
-              </div>
-            </div>
-
-            <button 
-              onclick="openNewProjectModal()"
-              class="px-3 py-1.5 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white font-semibold text-xs rounded transition flex items-center gap-1.5 shadow-xs"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-              </svg>
-              <span>+ Novo Projeto</span>
+      <!-- Barra de Filtros Rápidos -->
+      <div class="filter-bar">
+        <div class="filter-group">
+          <span class="filter-label">Cliente</span>
+          <div class="client-filter-group" id="client-filter-buttons">
+            <button type="button" class="client-filter-btn active" onclick="setFilterClient('all')">Todos</button>
+            <button type="button" class="client-filter-btn" onclick="setFilterClient('XP')">
+              <img src="logoxp.webp" alt="XP" data-fallback-src="xp.png" data-client-class="xp" onerror="if(window.handleClientLogoError)handleClientLogoError(this)"> XP
+            </button>
+            <button type="button" class="client-filter-btn" onclick="setFilterClient('Santander')">
+              <img src="logosantander.webp" alt="Santander" data-fallback-src="santander.png" data-client-class="santander" onerror="if(window.handleClientLogoError)handleClientLogoError(this)"> Santander
+            </button>
+            <button type="button" class="client-filter-btn" onclick="setFilterClient('Vivo')">
+              <img src="logovivo.webp" alt="Vivo" data-fallback-src="vivo.png" data-client-class="vivo" onerror="if(window.handleClientLogoError)handleClientLogoError(this)"> Vivo
+            </button>
+            <button type="button" class="client-filter-btn" onclick="setFilterClient('Outro')">
+              <span class="client-dot outro"></span> Outro
             </button>
           </div>
         </div>
 
-        <!-- DASHBOARD EXECUTIVO REDONDO (CIRCULAR DONUT) -->
-        <div class="bg-white border border-slate-200 rounded-md p-4 sm:p-5 shadow-xs">
-          <div class="flex flex-col lg:flex-row items-center justify-between gap-6">
-            
-            <!-- Grafico Circular Donut SVG -->
-            <div class="flex items-center gap-5">
-              <div class="relative w-36 h-36 shrink-0 flex items-center justify-center">
-                <svg class="w-36 h-36 transform -rotate-90" viewBox="0 0 140 140">
-                  <!-- Fundo do Donut -->
-                  <circle cx="70" cy="70" r="54" fill="none" stroke="#e2e8f0" stroke-width="14" />
-                  <!-- Segmento Verde -->
-                  <circle id="donut-circle-green" cx="70" cy="70" r="54" fill="none" stroke="#10b981" stroke-width="14" stroke-dasharray="0 339.29" stroke-dashoffset="0" class="transition-all duration-500" />
-                  <!-- Segmento Amarelo -->
-                  <circle id="donut-circle-yellow" cx="70" cy="70" r="54" fill="none" stroke="#f59e0b" stroke-width="14" stroke-dasharray="0 339.29" stroke-dashoffset="0" class="transition-all duration-500" />
-                  <!-- Segmento Vermelho -->
-                  <circle id="donut-circle-red" cx="70" cy="70" r="54" fill="none" stroke="#ef4444" stroke-width="14" stroke-dasharray="0 339.29" stroke-dashoffset="0" class="transition-all duration-500" />
-                </svg>
-                <!-- Centro do Donut -->
-                <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-                  <span id="donut-total" class="text-3xl font-extrabold text-slate-900 font-mono leading-none">0</span>
-                  <span class="text-[9px] uppercase tracking-wider font-bold text-slate-400 mt-1">Projetos</span>
-                </div>
-              </div>
-
-              <!-- Detalhes do Donut -->
-              <div>
-                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Distribuição do Portfólio</h3>
-                <div class="space-y-1.5 text-xs">
-                  <div onclick="filterByHealthKpi('green')" class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
-                    <span class="text-slate-600 font-medium">No Prazo:</span>
-                    <span id="legend-green-count" class="font-bold text-emerald-700 font-mono">0 (0%)</span>
-                  </div>
-                  <div onclick="filterByHealthKpi('yellow')" class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition">
-                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></span>
-                    <span class="text-slate-600 font-medium">Em Atenção:</span>
-                    <span id="legend-yellow-count" class="font-bold text-amber-700 font-mono">0 (0%)</span>
-                  </div>
-                  <div onclick="filterByHealthKpi('red')" class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition">
-                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0"></span>
-                    <span class="text-slate-600 font-medium">Crítico / Atrasado:</span>
-                    <span id="legend-red-count" class="font-bold text-rose-700 font-mono">0 (0%)</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Gauge Circular de Taxa Média de Conclusão -->
-            <div class="flex items-center gap-4 bg-slate-50 p-3.5 rounded-md border border-slate-200">
-              <div class="relative w-20 h-20 shrink-0 flex items-center justify-center">
-                <svg class="w-20 h-20 transform -rotate-90" viewBox="0 0 60 60">
-                  <circle cx="30" cy="30" r="25" fill="none" stroke="#e2e8f0" stroke-width="6" />
-                  <circle id="donut-circle-avg" cx="30" cy="30" r="25" fill="none" stroke="#2563eb" stroke-width="6" stroke-dasharray="0 157.08" stroke-dashoffset="0" class="transition-all duration-500" />
-                </svg>
-                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <span id="donut-avg-progress" class="text-xs font-bold font-mono text-blue-800">0%</span>
-                </div>
-              </div>
-
-              <div>
-                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Taxa Média de Entrega</span>
-                <span class="text-xs font-medium text-slate-700 mt-0.5 block">Execução agregada de todas as iniciativas</span>
-                <div class="flex items-center gap-1.5 mt-1.5">
-                  <span class="text-[10px] font-semibold text-slate-500">Clientes Ativos:</span>
-                  <span id="donut-active-clients" class="text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200">Allan, Santander</span>
-                </div>
-              </div>
-            </div>
-
-          </div>
+        <div class="filter-group">
+          <span class="filter-label">Programa</span>
+          <select class="filter-select" id="filter-program" onchange="applyFilters()">
+            <option value="">Todos</option>
+          </select>
         </div>
 
-        <div class="bg-white p-2.5 rounded-md border border-slate-200 flex flex-col md:flex-row gap-2 justify-between items-center">
-          <div class="w-full md:w-72">
-            <input 
-              id="table-search-input" 
-              type="text" 
-              placeholder="Buscar por ID, projeto, cliente ou responsável..." 
-              oninput="renderExecutiveTable()"
-              class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-700 focus:bg-white"
-            >
-          </div>
-
-          <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-            <select 
-              id="table-filter-client" 
-              onchange="renderExecutiveTable()"
-              class="text-xs py-1.5 px-2 bg-slate-50 border border-slate-300 rounded text-slate-700 focus:outline-none focus:border-blue-700 font-medium"
-            >
-              <option value="all">Todos os Clientes</option>
-            </select>
-
-            <select 
-              id="table-filter-colab" 
-              onchange="renderExecutiveTable()"
-              class="text-xs py-1.5 px-2 bg-slate-50 border border-slate-300 rounded text-slate-700 focus:outline-none focus:border-blue-700"
-            >
-              <option value="all">Todos os Responsáveis</option>
-            </select>
-
-            <select 
-              id="table-filter-health" 
-              onchange="renderExecutiveTable()"
-              class="text-xs py-1.5 px-2 bg-slate-50 border border-slate-300 rounded text-slate-700 focus:outline-none focus:border-blue-700"
-            >
-              <option value="all">Todos os Status</option>
-              <option value="green">No Prazo (Verde)</option>
-              <option value="yellow">Em Atenção (Amarelo)</option>
-              <option value="red">Crítico (Vermelho)</option>
-            </select>
-          </div>
+        <div class="filter-group">
+          <span class="filter-label">Módulo / Frente</span>
+          <select class="filter-select" id="filter-module" onchange="applyFilters()">
+            <option value="">Todos</option>
+          </select>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-md overflow-hidden">
-          <div class="overflow-x-auto custom-scrollbar">
-            <table class="table-executive">
-              <thead>
-                <tr>
-                  <th>Projeto & ID</th>
-                  <th>Cliente</th>
-                  <th>Responsável & Cargo</th>
-                  <th>Situação</th>
-                  <th>Progresso (%)</th>
-                  <th>Status</th>
-                  <th>Prazo</th>
-                  <th class="text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody id="executive-table-body"></tbody>
-            </table>
-          </div>
-          <div id="executive-table-empty" class="hidden p-8 text-center text-slate-500 text-xs">
-            Nenhum projeto encontrado para os filtros selecionados.
-          </div>
+        <div class="filter-group">
+          <span class="filter-label">Responsável</span>
+          <select class="filter-select" id="filter-responsible" onchange="applyFilters()">
+            <option value="">Todos</option>
+          </select>
         </div>
 
-      </section>
-
-      <!-- visao da equipe (Carlos Souza, Beatriz Prugno) -->
-      <section id="view-colaborador" class="space-y-4 hidden">
-        
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200">
-          <div>
-            <h2 class="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
-              Meus Projetos: <span id="colab-banner-name" class="text-blue-800">Carlos Souza</span>
-              <span id="colab-banner-role" class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.2 bg-slate-100 text-slate-800 rounded border border-slate-200">
-                Trainee &bull; Allan
-              </span>
-            </h2>
-            <p class="text-xs text-slate-500 mt-0.5">Alimente seus projetos, atualize o progresso semanal e registre impedimentos</p>
-          </div>
-
-          <button 
-            onclick="openNewProjectModal()"
-            class="px-3 py-1.5 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white font-semibold text-xs rounded transition flex items-center gap-1.5 shadow-xs"
-          >
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>+ Novo Projeto</span>
-          </button>
+        <div class="filter-group">
+          <span class="filter-label">Saúde</span>
+          <select class="filter-select" id="filter-health" onchange="applyFilters()">
+            <option value="">Todas</option>
+            <option value="green">No Prazo</option>
+            <option value="yellow">Em Atenção</option>
+            <option value="red">Crítico</option>
+          </select>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-          <div class="bg-white p-3 rounded-md border border-slate-200 flex items-center justify-between">
-            <span class="text-xs text-slate-600 font-medium">Projetos Atribuídos</span>
-            <span id="colab-kpi-total" class="text-lg font-bold font-mono text-slate-900">0</span>
-          </div>
-          <div class="bg-white p-3 rounded-md border border-slate-200 flex items-center justify-between">
-            <span class="text-xs text-slate-600 font-medium">Taxa Média de Execução</span>
-            <span id="colab-kpi-avg" class="text-lg font-bold font-mono text-blue-700">0%</span>
-          </div>
-          <div class="bg-white p-3 rounded-md border border-slate-200 flex items-center justify-between">
-            <span class="text-xs text-slate-600 font-medium">Alertas / Riscos Ativos</span>
-            <span id="colab-kpi-alerts" class="text-lg font-bold font-mono text-amber-700">0</span>
+        <button class="btn-clear-filters" onclick="clearFilters()">Limpar Filtros</button>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Total de Frentes</div>
+          <div class="kpi-value" id="kpi-total">0</div>
+          <div class="kpi-detail" id="kpi-avg">Média: 0%</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">No Prazo</div>
+          <div class="kpi-value" id="kpi-green">0</div>
+          <div class="kpi-detail" id="kpi-green-pct">0%</div>
+        </div>
+        <div class="kpi-card yellow">
+          <div class="kpi-label">Em Atenção</div>
+          <div class="kpi-value" id="kpi-yellow">0</div>
+          <div class="kpi-detail" id="kpi-yellow-pct">0%</div>
+        </div>
+        <div class="kpi-card red">
+          <div class="kpi-label">Crítico</div>
+          <div class="kpi-value" id="kpi-red">0</div>
+          <div class="kpi-detail" id="kpi-red-pct">0%</div>
+        </div>
+      </div>
+
+      <!-- Tabela Principal -->
+      <div class="table-container">
+        <div class="table-header">
+          <span class="table-title">Frentes de Trabalho & Cronograma</span>
+          <div class="flex items-center gap-2">
+            <span class="table-count" id="table-count">0 registros</span>
+            <button class="btn-primary btn-sm" onclick="openNewProjectModal()">+ Nova Frente</button>
           </div>
         </div>
-
-        <div id="colab-projects-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
-
-        <div id="colab-empty-state" class="hidden p-10 bg-white border border-dashed border-slate-300 rounded-md text-center text-xs text-slate-500">
-          Você não possui nenhum projeto atribuído no momento. Clique em "+ Novo Projeto" para cadastrar sua iniciativa.
+        <div class="table-scroll" id="table-scroll-area">
+          <table class="table-dense">
+            <thead>
+              <tr>
+                <th>Cliente & Programa</th>
+                <th>Módulo / Frente</th>
+                <th>Responsável & Área</th>
+                <th>Prazo Original</th>
+                <th>Nova Data Fim</th>
+                <th>Status & Progresso</th>
+                <th>Saúde</th>
+                <th class="text-right">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-principal"></tbody>
+          </table>
         </div>
+      </div>
+    </main>
 
-      </section>
-
+    <!-- ============================================================
+         VISÃO DO COLABORADOR
+         ============================================================ -->
+    <main id="view-colaborador" class="section-main hidden">
+      <div class="view-header">
+        <h2 class="view-title" id="colab-welcome">Meus Projetos</h2>
+        <button class="btn-primary" onclick="openNewProjectModal()">+ Nova Frente / Projeto</button>
+      </div>
+      <div id="colab-cards-container" class="colab-grid"></div>
     </main>
   </div>
 
-  <!-- modal atualizar status -->
-  <div id="modal-update-status" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-    <div class="bg-white rounded-md border border-slate-300 max-w-md w-full shadow-lg overflow-hidden">
-      <div class="px-5 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+  <!-- ============================================================
+       DRAWER DE DETALHAMENTO (DRILL-DOWN)
+       ============================================================ -->
+  <div id="drawer-overlay" class="drawer-overlay" onclick="closeDetailDrawer()"></div>
+  <aside id="drawer-panel" class="drawer-panel">
+    <!-- Header do Drawer -->
+    <div class="drawer-header">
+      <div class="drawer-header-top">
         <div>
-          <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Atualizar Status & Indicadores</h3>
-          <p id="modal-update-project-title" class="text-xs text-blue-700 font-medium truncate mt-0.5 max-w-xs">PRJ-001</p>
+          <span class="font-mono" style="font-size:11px;font-weight:700;color:#64748B;" id="drawer-project-id">—</span>
+          <span id="drawer-client-badge" style="margin-left:8px;"></span>
         </div>
-        <button onclick="closeModal('modal-update-status')" class="text-slate-400 hover:text-slate-700 p-1">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        <button class="drawer-close-btn" onclick="closeDetailDrawer()" title="Fechar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
-
-      <form id="form-update-status" onsubmit="handleSaveStatusUpdate(event)" class="p-5 space-y-4">
-        <input type="hidden" id="modal-update-project-id">
-
-        <div>
-          <div class="flex justify-between items-center text-xs font-semibold text-slate-700 mb-1.5">
-            <span>Percentual Concluído</span>
-            <span id="modal-update-progress-label" class="font-mono text-blue-800 font-bold">50%</span>
-          </div>
-          <input 
-            type="range" 
-            id="modal-update-range" 
-            min="0" 
-            max="100" 
-            step="1" 
-            class="corporate-slider w-full cursor-pointer"
-          >
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1.5">
-            Status do Projeto
-          </label>
-          <div class="grid grid-cols-3 gap-2">
-            <label class="cursor-pointer">
-              <input type="radio" name="modal-update-health" value="green" class="sr-only peer">
-              <div class="p-2 border border-slate-200 rounded text-center peer-checked:border-emerald-500 peer-checked:bg-emerald-50 text-xs font-medium text-slate-700 peer-checked:text-emerald-900 transition">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span>
-                No Prazo
-              </div>
-            </label>
-
-            <label class="cursor-pointer">
-              <input type="radio" name="modal-update-health" value="yellow" class="sr-only peer">
-              <div class="p-2 border border-slate-200 rounded text-center peer-checked:border-amber-500 peer-checked:bg-amber-50 text-xs font-medium text-slate-700 peer-checked:text-amber-900 transition">
-                <span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1"></span>
-                Em Atenção
-              </div>
-            </label>
-
-            <label class="cursor-pointer">
-              <input type="radio" name="modal-update-health" value="red" class="sr-only peer">
-              <div class="p-2 border border-slate-200 rounded text-center peer-checked:border-rose-500 peer-checked:bg-rose-50 text-xs font-medium text-slate-700 peer-checked:text-rose-900 transition">
-                <span class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1"></span>
-                Crítico
-              </div>
-            </label>
-          </div>
-        </div>
-
-        <div>
-          <div class="flex items-center justify-between mb-1">
-            <label class="block text-xs font-semibold text-slate-700" for="modal-update-deadline">
-              Prazo Estimado
-            </label>
-            <label class="flex items-center gap-1 cursor-pointer text-[11px] text-blue-700 font-bold select-none">
-              <input type="checkbox" id="modal-update-indefinite" onchange="toggleUpdateIndefiniteDeadline(this.checked)" class="w-3.5 h-3.5 rounded border-slate-300 text-blue-700 focus:ring-blue-600">
-              <span>(Indeterminado)</span>
-            </label>
-          </div>
-          <input 
-            id="modal-update-deadline" 
-            type="date" 
-            class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded text-slate-900 focus:bg-white focus:outline-none focus:border-blue-700 font-mono"
-          >
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1" for="modal-update-deadline-msg">
-            Mensagem / Justificativa da Alteração de Prazo <span class="text-slate-400 font-normal">(Opcional)</span>
-          </label>
-          <input 
-            id="modal-update-deadline-msg" 
-            type="text" 
-            placeholder="Ex: Alinhado com o cliente para atendimento de novas demandas..." 
-            class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded text-slate-900 focus:bg-white focus:outline-none focus:border-blue-700"
-          >
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1" for="modal-update-notes">
-            Observações / Impedimentos da Semana
-          </label>
-          <textarea 
-            id="modal-update-notes" 
-            rows="3" 
-            placeholder="Descreva avanços da semana, riscos identificados ou suporte necessário da gerência..."
-            class="w-full p-2 text-xs bg-slate-50 border border-slate-300 rounded text-slate-900 focus:bg-white focus:outline-none focus:border-blue-700"
-          ></textarea>
-        </div>
-
-        <div class="pt-2 border-t border-slate-200 flex justify-end gap-2">
-          <button 
-            type="button" 
-            onclick="closeModal('modal-update-status')"
-            class="px-3 py-1.5 text-xs text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded"
-          >
-            Cancelar
-          </button>
-          <button 
-            type="submit" 
-            class="px-4 py-1.5 bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold rounded transition"
-          >
-            Salvar Atualização
-          </button>
-        </div>
-      </form>
+      <h2 style="font-size:16px;font-weight:700;color:#0F172A;margin-bottom:4px;" id="drawer-project-title">—</h2>
+      <p style="font-size:12px;color:#64748B;" id="drawer-project-meta">—</p>
     </div>
-  </div>
 
-  <!-- modal novo projeto (com opcao de prazo indeterminado) -->
-  <div id="modal-new-project" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-    <div class="bg-white rounded-md border border-slate-300 max-w-lg w-full shadow-lg overflow-hidden">
-      <div class="px-5 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Cadastrar Nova Iniciativa</h3>
-        <button onclick="closeModal('modal-new-project')" class="text-slate-400 hover:text-slate-700 p-1">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-      </div>
+    <!-- Abas -->
+    <div class="tab-nav">
+      <button class="tab-btn active" id="tab-roadmap" onclick="switchDrawerTab('roadmap')">Resumo & Governança</button>
+      <button class="tab-btn" id="tab-hypercare" onclick="switchDrawerTab('hypercare')">Defeitos & Hypercare</button>
+    </div>
 
-      <form id="form-new-project" onsubmit="handleCreateProject(event)" class="p-5 space-y-3.5">
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1" for="new-project-title">
-            Nome do Projeto
-          </label>
-          <input 
-            id="new-project-title" 
-            type="text" 
-            required 
-            placeholder="Ex: Dashboard de Projetos" 
-            class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded text-slate-900 focus:bg-white focus:outline-none focus:border-blue-700"
-          >
+    <!-- Corpo do Drawer -->
+    <div class="drawer-body">
+      <!-- ABA 1: ROADMAP -->
+      <div class="tab-panel active" id="panel-roadmap">
+        <div class="detail-section">
+          <div class="detail-section-title">Progresso & Saúde</div>
+          <div class="flex items-center gap-3 mb-3">
+            <div style="flex:1;">
+              <div class="progress-bar-track" style="height:8px;">
+                <div class="progress-bar-fill" id="drawer-progress-bar" style="width:0%"></div>
+              </div>
+            </div>
+            <span class="font-mono" style="font-size:14px;font-weight:800;color:#0F172A;" id="drawer-progress-val">0%</span>
+            <span id="drawer-health-badge"></span>
+          </div>
+          <div style="font-size:12px;color:#64748B;" id="drawer-status-info"></div>
         </div>
 
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1" for="new-project-client-select">
-              Cliente
-            </label>
-            <select 
-              id="new-project-client-select" 
-              onchange="toggleNewProjectClientCustom(this.value)"
-              class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded text-slate-900 focus:bg-white focus:outline-none focus:border-blue-700 font-medium"
-            >
+        <div class="detail-section">
+          <div class="detail-section-title">Escopo & Objetivo</div>
+          <div class="detail-block" id="drawer-description">—</div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-section-title">Pré-requisitos & Impacto</div>
+          <div class="detail-block" id="drawer-prereqs-impact">—</div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-section-title">Pontos de Atenção / Impedimentos da Semana</div>
+          <div class="detail-block" id="drawer-weekly-notes">Sem notas registradas.</div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-section-title">Sub-entregas</div>
+          <div id="drawer-subitems"></div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-section-title">Comentários & Cobranças</div>
+          <div id="drawer-comments-list"></div>
+          <div class="mt-2 flex gap-2">
+            <input class="form-input" type="text" id="drawer-comment-input" placeholder="Adicionar comentário..." style="flex:1;">
+            <button class="btn-primary btn-sm" onclick="addComment()">Enviar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABA 2: HYPERCARE -->
+      <div class="tab-panel" id="panel-hypercare">
+        <div class="flex items-center" style="justify-content:space-between;margin-bottom:12px;">
+          <span style="font-size:13px;font-weight:700;color:#0F172A;">Chamados / Defeitos Vinculados</span>
+          <button class="btn-primary btn-sm" onclick="openNewRitmModal()">+ Novo Chamado</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="table-dense" style="min-width:500px;">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Descrição</th>
+                <th>Severidade</th>
+                <th>Squad</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="drawer-ritms-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer do Drawer -->
+    <div class="drawer-footer">
+      <button class="btn-danger btn-sm hidden" id="drawer-delete-btn" onclick="deleteProject()">Excluir Frente</button>
+      <button class="btn-secondary btn-sm" onclick="closeDetailDrawer()">Fechar</button>
+      <button class="btn-primary btn-sm" id="drawer-update-btn" onclick="openUpdateFromDrawer()">Atualizar Status</button>
+    </div>
+  </aside>
+
+  <!-- ============================================================
+       MODAL: NOVA FRENTE / PROJETO
+       ============================================================ -->
+  <div id="modal-new-project" class="modal-backdrop" onclick="if(event.target===this) closeModal('modal-new-project')">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Cadastrar Nova Frente / Projeto</h3>
+        <button type="button" class="btn-icon" onclick="closeModal('modal-new-project')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form onsubmit="handleSaveNewProject(event)">
+        <div class="modal-body">
+          <!-- Passo 1: Cliente e Programa -->
+          <div class="form-section-title">1. Cliente e Programa</div>
+          <div class="form-group">
+            <label class="form-label" for="new-proj-client">Cliente</label>
+            <select class="form-select" id="new-proj-client" onchange="toggleCustomClientField()">
+              <option value="XP">XP</option>
               <option value="Santander">Santander</option>
               <option value="Vivo">Vivo</option>
-              <option value="XP">XP</option>
-              <option value="Allan">Allan</option>
-              <option value="Outros">Outros</option>
+              <option value="Outro">Outro</option>
             </select>
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1" for="new-project-category">
-              Área / Categoria
-            </label>
-            <input 
-              id="new-project-category" 
-              type="text" 
-              placeholder="BI & Gestão" 
-              value="Gestão"
-              class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded text-slate-900 focus:bg-white focus:outline-none focus:border-blue-700"
-            >
+          <div class="form-group hidden" id="new-proj-client-custom-group">
+            <label class="form-label" for="new-proj-client-custom">Nome do Cliente</label>
+            <input class="form-input" type="text" id="new-proj-client-custom" placeholder="Digite o nome do cliente">
           </div>
-        </div>
 
-        <!-- So aparece a caixa de texto se for colocado Outros -->
-        <div id="field-new-project-client-custom" class="hidden">
-          <label class="block text-[11px] font-semibold text-slate-600 mb-1" for="new-project-client-custom">
-            Digite o Nome do Cliente
-          </label>
-          <input 
-            id="new-project-client-custom" 
-            type="text" 
-            placeholder="Nome do cliente ou local..." 
-            class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded text-slate-900 focus:bg-white focus:outline-none focus:border-blue-700"
-          >
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <div class="flex items-center justify-between mb-1">
-              <label class="block text-xs font-semibold text-slate-700" for="new-project-deadline">
-                Prazo Estimado
-              </label>
-              <label class="flex items-center gap-1 cursor-pointer text-[11px] text-blue-700 font-bold select-none">
-                <input type="checkbox" id="new-project-indefinite" onchange="toggleIndefiniteDeadline(this.checked)" class="w-3.5 h-3.5 rounded border-slate-300 text-blue-700 focus:ring-blue-600">
-                <span>(Indeterminado)</span>
-              </label>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="new-proj-program">Programa</label>
+              <input class="form-input" type="text" id="new-proj-program" list="dl-programs" placeholder="Ex: PD Gente" required>
+              <datalist id="dl-programs"></datalist>
             </div>
-            <input 
-              id="new-project-deadline" 
-              type="date" 
-              required 
-              class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded text-slate-900 focus:bg-white focus:outline-none focus:border-blue-700 font-mono"
-            >
+            <div class="form-group">
+              <label class="form-label" for="new-proj-module">Módulo / Frente</label>
+              <input class="form-input" type="text" id="new-proj-module" list="dl-modules" placeholder="Ex: Recruiting" required>
+              <datalist id="dl-modules"></datalist>
+            </div>
           </div>
 
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1" for="new-project-health">
-              Status Inicial
-            </label>
-            <select 
-              id="new-project-health" 
-              class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded text-slate-900 focus:bg-white focus:outline-none focus:border-blue-700"
-            >
-              <option value="green">No Prazo (Verde)</option>
-              <option value="yellow">Em Atenção (Amarelo)</option>
-              <option value="red">Crítico (Vermelho)</option>
-            </select>
+          <!-- Passo 2: Entrega, Responsável e Área -->
+          <div class="form-section-title">2. Entrega e Responsável</div>
+          <div class="form-group">
+            <label class="form-label" for="new-proj-title">Nome da Entrega</label>
+            <input class="form-input" type="text" id="new-proj-title" placeholder="Ex: FIIBO — Readiness Técnico" required>
           </div>
-        </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1" for="new-project-desc">
-            Escopo / Objetivos
-          </label>
-          <textarea 
-            id="new-project-desc" 
-            rows="3" 
-            placeholder="Resumo executivo do projeto, metas e entregáveis..."
-            class="w-full p-2 text-xs bg-slate-50 border border-slate-300 rounded text-slate-900 focus:bg-white focus:outline-none focus:border-blue-700"
-          ></textarea>
-        </div>
-
-        <div class="pt-2 border-t border-slate-200 flex justify-end gap-2">
-          <button 
-            type="button" 
-            onclick="closeModal('modal-new-project')"
-            class="px-3 py-1.5 text-xs text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded"
-          >
-            Cancelar
-          </button>
-          <button 
-            type="submit" 
-            class="px-4 py-1.5 bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold rounded transition"
-          >
-            Cadastrar Projeto
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- modal detalhe / comentario / remocao -->
-  <div id="modal-detail-project" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-    <div class="bg-white rounded-md border border-slate-300 max-w-xl w-full shadow-lg overflow-hidden flex flex-col max-h-[90vh]">
-      <div class="px-5 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
-        <div>
-          <div class="flex items-center gap-2">
-            <span id="modal-detail-id" class="font-mono text-xs font-bold text-slate-500 bg-slate-200 px-1.5 py-0.2 rounded">PRJ-001</span>
-            <span id="modal-detail-client-badge" class="text-[11px] font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-800 border border-slate-300">Cliente</span>
-            <h3 id="modal-detail-title" class="text-sm font-bold text-slate-900 truncate max-w-xs sm:max-w-sm">Nome do Projeto</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="new-proj-responsible-name">Responsável</label>
+              <input class="form-input" type="text" id="new-proj-responsible-name" placeholder="Nome completo" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="new-proj-responsible-email">E-mail do Responsável</label>
+              <input class="form-input" type="email" id="new-proj-responsible-email" placeholder="nome@empresa.com" required>
+            </div>
           </div>
-          <p id="modal-detail-meta" class="text-[11px] text-slate-500 mt-0.5">Resp: Carlos Souza | Prazo: Indeterminado</p>
-        </div>
-        <button onclick="closeModal('modal-detail-project')" class="text-slate-400 hover:text-slate-700 p-1">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-      </div>
+          <div class="form-group">
+            <label class="form-label" for="new-proj-squad">Área / Squad</label>
+            <input class="form-input" type="text" id="new-proj-squad" placeholder="Ex: PMO, Squad SAP, R&S, TI" required>
+          </div>
 
-      <div class="p-5 space-y-4 overflow-y-auto custom-scrollbar flex-1 text-xs">
-        <div class="p-3 bg-slate-50 rounded border border-slate-200">
-          <div class="flex justify-between items-center mb-1 text-xs font-semibold text-slate-800">
-            <span>Progresso da Execução</span>
+          <!-- Passo 3: Prazo Inicial e Saúde -->
+          <div class="form-section-title">3. Prazo e Saúde Inicial</div>
+          <div class="form-group">
+            <label class="form-label" for="new-proj-baseline-end">Prazo Inicial (Fim)</label>
+            <input class="form-input" type="date" id="new-proj-baseline-end" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="new-proj-status">Status Inicial</label>
+              <select class="form-select" id="new-proj-status">
+                <option value="A Iniciar">A Iniciar</option>
+                <option value="Em Andamento" selected>Em Andamento</option>
+                <option value="Em Homologação">Em Homologação</option>
+                <option value="Concluído">Concluído</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="new-proj-health">Saúde Inicial</label>
+              <select class="form-select" id="new-proj-health">
+                <option value="green">🟢 No Prazo</option>
+                <option value="yellow">🟡 Em Atenção</option>
+                <option value="red">🔴 Crítico</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="new-proj-progress">Progresso Inicial (%)</label>
             <div class="flex items-center gap-2">
-              <span id="modal-detail-prog-val" class="font-mono font-bold text-blue-800">75%</span>
-              <div id="modal-detail-health"></div>
+              <input type="range" min="0" max="100" value="0" id="new-proj-progress" oninput="document.getElementById('new-proj-progress-val').textContent = this.value + '%'" style="flex:1;">
+              <span class="font-mono" style="font-size:13px;font-weight:700;min-width:40px;text-align:right;" id="new-proj-progress-val">0%</span>
             </div>
           </div>
-          <div class="w-full bg-slate-200 h-2 rounded-xs overflow-hidden">
-            <div id="modal-detail-prog-bar" class="bg-blue-700 h-2" style="width: 75%"></div>
+
+          <!-- Passo 4: Resumo e Governança -->
+          <div class="form-section-title">4. Resumo e Governança</div>
+          <div class="form-group">
+            <label class="form-label" for="new-proj-description">Resumo / Objetivo (opcional)</label>
+            <textarea class="form-textarea" id="new-proj-description" placeholder="Escopo executivo da frente de trabalho..." rows="2"></textarea>
           </div>
-          <div id="modal-detail-desc" class="text-slate-600 mt-2 text-[11px] leading-relaxed">
-            Descrição do escopo.
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="new-proj-prereqs">Pré-requisitos (opcional)</label>
+              <input class="form-input" type="text" id="new-proj-prereqs" placeholder="Ex: Aprovação acessos / Infra">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="new-proj-impact">Impacto se não concluída (opcional)</label>
+              <input class="form-input" type="text" id="new-proj-impact" placeholder="Ex: Risco de atraso no Go-Live">
+            </div>
           </div>
         </div>
-
-        <div class="p-3 bg-amber-50/70 border border-amber-200 rounded">
-          <span class="font-bold text-amber-900 uppercase text-[10px] tracking-wider block mb-1">
-            Últimas Observações & Impedimentos Declarados
-          </span>
-          <p id="modal-detail-notes" class="text-slate-800 italic">
-            "Sem notas recentes."
-          </p>
-        </div>
-
-        <div>
-          <span class="font-bold text-slate-800 uppercase text-[10px] tracking-wider block mb-2">
-            Governança & Comentários de Auditoria
-          </span>
-
-          <div id="modal-comments-container" class="space-y-2 mb-3"></div>
-
-          <form onsubmit="handleAddComment(event)" class="flex gap-2">
-            <input 
-              id="modal-comment-input" 
-              type="text" 
-              required 
-              placeholder="Inserir nota de governança ou instrução executiva..." 
-              class="flex-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded text-slate-900 focus:bg-white focus:outline-none focus:border-blue-700"
-            >
-            <button 
-              type="submit" 
-              class="px-3 py-1.5 bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold rounded shrink-0"
-            >
-              Publicar
-            </button>
-          </form>
-        </div>
-      </div>
-
-      <div class="px-5 py-2.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
-        <button 
-          id="modal-detail-delete-btn"
-          onclick="handleDeleteProject(AppState.activeModalProjectId)"
-          class="px-2.5 py-1 text-xs text-rose-600 hover:text-rose-800 hover:bg-rose-50 border border-rose-200 rounded flex items-center gap-1 transition"
-        >
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-          <span>Excluir Projeto</span>
-        </button>
-
-        <button 
-          onclick="closeModal('modal-detail-project')" 
-          class="px-3 py-1 bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs rounded"
-        >
-          Fechar
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- modal recuperacao de senha -->
-  <div id="modal-forgot-password" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-    <div class="bg-white rounded-md border border-slate-300 max-w-sm w-full p-5 shadow-lg">
-      <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-1">Recuperação de Acesso</h3>
-      <p class="text-xs text-slate-500 mb-3">Informe seu e-mail corporativo ou usuário para envio do token de redefinição de credenciais.</p>
-      
-      <form onsubmit="event.preventDefault(); closeModal('modal-forgot-password'); showToast('Link de recuperação enviado com sucesso.', 'info');" class="space-y-3">
-        <input 
-          type="text" 
-          required 
-          placeholder="Usuário ou e-mail corporativo..." 
-          class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded text-slate-900 focus:bg-white focus:outline-none focus:border-blue-700"
-        >
-        <div class="flex justify-end gap-2 pt-1">
-          <button type="button" onclick="closeModal('modal-forgot-password')" class="px-3 py-1 text-xs text-slate-600 hover:bg-slate-100 rounded">
-            Cancelar
-          </button>
-          <button type="submit" class="px-3 py-1 bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold rounded">
-            Enviar Token
-          </button>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal('modal-new-project')">Cancelar</button>
+          <button type="submit" class="btn-primary">Cadastrar Frente</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- modal auditoria de seguranca -->
-  <div id="modal-security-audit" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-    <div class="bg-white rounded-md border border-slate-300 max-w-lg w-full p-5 shadow-lg flex flex-col max-h-[80vh]">
-      <div class="flex justify-between items-center pb-2 border-b border-slate-200 mb-3">
-        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-rose-600"></span>
-          Auditoria de Segurança (RBAC)
-        </h3>
-        <button onclick="closeModal('modal-security-audit')" class="text-slate-400 hover:text-slate-700 p-1">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+  <!-- ============================================================
+       MODAL: ATUALIZAR STATUS
+       ============================================================ -->
+  <div id="modal-update-status" class="modal-backdrop" onclick="if(event.target===this) closeModal('modal-update-status')">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Atualizar Status</h3>
+        <button type="button" class="btn-icon" onclick="closeModal('modal-update-status')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
-
-      <div id="modal-security-list" class="space-y-2 overflow-y-auto custom-scrollbar flex-1 pr-1"></div>
-
-      <div class="pt-3 border-t border-slate-200 flex justify-end mt-2">
-        <button onclick="closeModal('modal-security-audit')" class="px-3 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded">
-          Fechar
-        </button>
-      </div>
+      <form onsubmit="handleSaveUpdateStatus(event)">
+        <input type="hidden" id="update-project-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Frente</label>
+            <p style="font-size:13px;font-weight:600;color:#0F172A;" id="update-project-label">—</p>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select class="form-select" id="update-status">
+                <option value="A Iniciar">A Iniciar</option>
+                <option value="Em Andamento">Em Andamento</option>
+                <option value="Em Homologação">Em Homologação</option>
+                <option value="Concluído">Concluído</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Saúde</label>
+              <select class="form-select" id="update-health">
+                <option value="green">🟢 No Prazo</option>
+                <option value="yellow">🟡 Em Atenção</option>
+                <option value="red">🔴 Crítico</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Progresso (%)</label>
+            <div class="flex items-center gap-2">
+              <input type="range" min="0" max="100" value="0" id="update-progress" oninput="document.getElementById('update-progress-val').textContent = this.value + '%'" style="flex:1;">
+              <span class="font-mono" style="font-size:13px;font-weight:700;min-width:40px;text-align:right;" id="update-progress-val">0%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nova Data Fim (se houve reprogramação)</label>
+            <input class="form-input" type="date" id="update-new-end">
+            <p class="form-hint">Deixe vazio se o prazo original se mantém.</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mensagem de Mudança de Prazo (opcional)</label>
+            <textarea class="form-textarea" id="update-deadline-msg" placeholder="Motivo da reprogramação..." rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bloqueios / Pontos de Atenção da Semana</label>
+            <textarea class="form-textarea" id="update-weekly-notes" placeholder="O que está travando ou precisa de atenção?" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal('modal-update-status')">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar Atualização</button>
+        </div>
+      </form>
     </div>
   </div>
 
-  <!-- rodape de homologacao -->
-  <footer id="homologation-bar" class="bg-slate-800 text-slate-300 text-xs border-t border-slate-700 sticky bottom-0 z-20 shadow-md">
-    
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-1.5 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="text-[10px] font-mono font-bold bg-slate-900 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700">
-          QA &bull; HOMOLOG
-        </span>
-        <span class="text-slate-300 text-[11px] font-medium hidden sm:inline">
-          Ambiente de Homologação & Simulação de Papel
-        </span>
-      </div>
-
-      <div class="flex items-center gap-3">
-        <button 
-          onclick="openSecurityAuditModal()" 
-          title="Ver logs de segurança" 
-          class="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 font-mono"
-        >
-          <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-          <span id="homologation-security-count">0 eventos</span>
-        </button>
-
-        <button 
-          onclick="toggleHomologationBar()" 
-          class="text-slate-400 hover:text-white flex items-center gap-1 font-medium text-[11px]"
-        >
-          <span>Painel de Testes</span>
-          <svg id="homologation-arrow" class="w-3.5 h-3.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
+  <!-- ============================================================
+       MODAL: NOVO CHAMADO (RITM / HYPERCARE)
+       ============================================================ -->
+  <div id="modal-new-ritm" class="modal-backdrop" onclick="if(event.target===this) closeModal('modal-new-ritm')">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Registrar Chamado / Defeito</h3>
+        <button type="button" class="btn-icon" onclick="closeModal('modal-new-ritm')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
-    </div>
-
-    <div id="homologation-content" class="hidden border-t border-slate-700/80 bg-slate-900/95 p-3">
-      <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
-        
-        <div class="flex items-center gap-2">
-          <label class="text-[11px] text-slate-400 font-semibold" for="debug-switch-user">
-            Simular Sessão Como:
-          </label>
-          <select 
-            id="debug-switch-user" 
-            onchange="simulateUserSwitch(this.value)"
-            class="px-2 py-1 text-xs bg-slate-800 border border-slate-700 rounded text-slate-200 focus:outline-none focus:border-blue-500 font-mono"
-          ></select>
+      <form onsubmit="handleSaveNewRitm(event)">
+        <input type="hidden" id="new-ritm-project-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="new-ritm-code">Código do Chamado (RITM / Ticket)</label>
+            <input class="form-input" type="text" id="new-ritm-code" placeholder="Ex: RITM18437224" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="new-ritm-description">Descrição Curta</label>
+            <input class="form-input" type="text" id="new-ritm-description" placeholder="Descreva o defeito ou necessidade" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="new-ritm-severity">Severidade</label>
+              <select class="form-select" id="new-ritm-severity">
+                <option value="Alta P2">Alta P2</option>
+                <option value="Média P3" selected>Média P3</option>
+                <option value="Baixa P4">Baixa P4</option>
+                <option value="Melhoria P5">Melhoria P5</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="new-ritm-status">Status</label>
+              <select class="form-select" id="new-ritm-status">
+                <option value="Em análise" selected>Em análise</option>
+                <option value="Concluído">Concluído</option>
+                <option value="Chamado SAP">Chamado SAP</option>
+                <option value="Pendente">Pendente</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="new-ritm-squad">Squad / Responsável Técnico</label>
+            <input class="form-input" type="text" id="new-ritm-squad" placeholder="Ex: EPI Use - Karina Santos" required>
+          </div>
         </div>
-
-        <div class="flex items-center gap-2">
-          <button 
-            onclick="resetDefaultDemoData()" 
-            class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 text-[11px] transition"
-          >
-            Restaurar Dados Padrão
-          </button>
-          <button 
-            onclick="openSecurityAuditModal()" 
-            class="px-2.5 py-1 bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 rounded border border-rose-800 text-[11px] transition"
-          >
-            Ver Auditoria RBAC
-          </button>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal('modal-new-ritm')">Cancelar</button>
+          <button type="submit" class="btn-primary">Registrar Chamado</button>
         </div>
-
-      </div>
+      </form>
     </div>
-  </footer>
+  </div>
+
+  <!-- ============================================================
+       TOAST CONTAINER
+       ============================================================ -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- ============================================================
+       BARRA DE HOMOLOGAÇÃO (EXCLUSIVA DO GERENTE AUTENTICADO)
+       ============================================================ -->
+  <div id="homologation-bar" class="hidden">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <span>Modo Homologação (Gerente) — Simular como:</span>
+    <select id="debug-switch-user" onchange="switchDebugUser()"></select>
+  </div>
 
   <script src="app.js"></script>
 </body>

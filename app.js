@@ -1,149 +1,61 @@
-const GOVERNANCE_KEY = 'GOV2026';
-const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 min de inatividade
-const STORAGE_PREFIX = 'allan_santos_gov_v8_';
+// ============================================================
+// Projetos Allan Santos — Portal de Governança & PMO
+// app.js — Motor da aplicação, estado limpo, RBAC, XSS, persistência
+//
+// Base: ZERO projetos mockados. Infraestrutura pronta pra equipe
+// alimentar manualmente. Multi-cliente (XP, Santander, Vivo, Outro).
+// ============================================================
 
-const STORAGE_KEYS = {
-  USERS: `${STORAGE_PREFIX}users`,
-  PROJECTS: `${STORAGE_PREFIX}projects`,
-  SESSION: `${STORAGE_PREFIX}session`,
-  NOTIFICATIONS: `${STORAGE_PREFIX}notifications`,
-  SECURITY_LOGS: `${STORAGE_PREFIX}security_logs`
-};
+'use strict';
 
-// equipe oficial de teste solicitada (CarlosSouza como usuario)
-const INITIAL_USERS = [
+// ========================
+// CONSTANTES & STORAGE
+// ========================
+const STORAGE_KEY_USERS = 'as_gov_users_v3';
+const STORAGE_KEY_PROJECTS = 'as_gov_projects_v3';
+const STORAGE_KEY_NOTIFS = 'as_gov_notifications_v3';
+const STORAGE_KEY_SESSION = 'as_gov_session_v3';
+const MANAGER_KEY = 'GOV2026'; // Chave corporativa pra cadastro de gerente
+
+// ========================
+// USUÁRIO PADRÃO (só o Allan — equipe se cadastra ou o gerente cria)
+// ========================
+const DEFAULT_USERS = [
   {
-    id: 'usr_001',
+    id: 'usr-001',
     name: 'Allan Santos',
-    username: 'AllanSantos',
     email: 'allan.santos@empresa.com',
-    role: 'Gerente',
-    client: 'Allan',
-    password: '12345'
-  },
-  {
-    id: 'usr_002',
-    name: 'Carlos Souza',
-    username: 'CarlosSouza',
-    email: 'carlos.souza@empresa.com',
-    role: 'Trainee',
-    client: 'Allan',
-    password: '54321'
-  },
-  {
-    id: 'usr_003',
-    name: 'Beatriz Prugno',
-    username: 'BeatrizP',
-    email: 'beatriz.prugno@santander.com.br',
-    role: 'Senior',
-    client: 'Santander',
-    password: 'Bia123'
+    username: 'AllanSantos',
+    password: '12345',
+    role: 'Gerente'
   }
 ];
 
-// projetos iniciais oficiais
-const INITIAL_PROJECTS = [
-  {
-    id: 'PRJ-2026-001',
-    client: 'Allan',
-    title: 'Dashboard de Projetos',
-    category: 'Governança & Business Intelligence',
-    description: 'Construção e sustentação do painel executivo corporativo para monitoramento contínuo do portfólio de iniciativas e indicadores agregados de entrega.',
-    responsibleName: 'Carlos Souza',
-    responsibleUsername: 'CarlosSouza',
-    responsibleEmail: 'carlos.souza@empresa.com',
-    status: 'Em Andamento',
-    progress: 75,
-    health: 'green',
-    deadline: 'Indeterminado',
-    weeklyNotes: 'Painel redondo executivo implementado com gráfico de distribuição e taxa média de entrega agregada.',
-    comments: [
-      {
-        author: 'Allan Santos',
-        role: 'Gerente',
-        date: '10/11/2026 10:15',
-        text: 'Layout do dashboard circular aprovado. Garantir que os filtros de clientes e status permaneçam rápidos.'
-      },
-      {
-        author: 'Carlos Souza',
-        role: 'Trainee',
-        date: '10/11/2026 11:30',
-        text: 'Painel executivo redondo funcionando perfeitamente com atualização em tempo real.'
-      }
-    ]
-  },
-  {
-    id: 'PRJ-2026-002',
-    client: 'Santander',
-    title: 'PMO riscos TI Santander',
-    category: 'Gestão de Riscos & TI',
-    description: 'Cobranças diarias de demandas, entre ela: Runtime, CNJP, APIGEE',
-    responsibleName: 'Beatriz Prugno',
-    responsibleUsername: 'BeatrizP',
-    responsibleEmail: 'beatriz.prugno@santander.com.br',
-    status: 'Em Andamento',
-    progress: 85,
-    health: 'yellow',
-    deadline: 'Indeterminado',
-    weeklyNotes: 'Cobranças diárias de demandas ativas (Runtime, CNJP, APIGEE). Homologação de apontamentos em curso.',
-    comments: [
-      {
-        author: 'Beatriz Prugno',
-        role: 'Senior',
-        date: '10/11/2026 15:42',
-        text: 'Escopo atualizado: Cobranças diárias de demandas, entre elas: Runtime, CNJP, APIGEE. Prazo definido como Indeterminado.'
-      },
-      {
-        author: 'Allan Santos',
-        role: 'Gerente',
-        date: '10/11/2026 09:00',
-        text: 'Excelente acompanhamento. Manter alinhamento diário até a homologação final.'
-      }
-    ]
-  }
-];
-
-// notificacoes para o painel executivo do Allan (no cantinho)
-const INITIAL_NOTIFICATIONS = [
-  {
-    id: 'notif_001',
-    author: 'Beatriz Prugno',
-    role: 'Senior',
-    client: 'Santander',
-    projectId: 'PRJ-2026-002',
-    projectTitle: 'PMO riscos TI Santander',
-    date: 'Hoje às 15:42',
-    changeType: 'Prazo & Escopo',
-    details: 'Prazo alterado para (Indeterminado). Cobranças diárias de demandas: Runtime, CNJP, APIGEE.',
-    message: 'Cobranças diárias de demandas, entre ela: Runtime, CNJP, APIGEE',
-    isNew: true
-  },
-  {
-    id: 'notif_002',
-    author: 'Carlos Souza',
-    role: 'Trainee',
-    client: 'Allan',
-    projectId: 'PRJ-2026-001',
-    projectTitle: 'Dashboard de Projetos',
-    date: 'Hoje às 14:15',
-    changeType: 'Status & Progresso',
-    details: 'Progresso em 75% (No Prazo). Gráfico executivo e filtros consolidados.',
-    message: 'Painel redondo de governança integrado com sucesso.',
-    isNew: true
-  }
-];
-
+// ========================
+// ESTADO GLOBAL DA APLICAÇÃO
+// ========================
 const AppState = {
   users: [],
-  projects: [],
-  session: null,
-  activeModalProjectId: null,
+  projects: [],     // começa vazio — preenchido pela equipe
   notifications: [],
-  securityLogs: []
+  session: null,     // { user: {...} }
+  filters: {
+    client: 'all',
+    program: '',
+    module: '',
+    responsible: '',
+    health: ''
+  },
+  drawerProjectId: null,
+  drawerTab: 'roadmap'
 };
 
-// Limpa caracteres perigosos contra script malicioso
-function sanitize(str) {
+// ========================
+// UTILITÁRIOS
+// ========================
+
+// Limpa caracteres maliciosos antes de jogar na tabela, drawer, modal ou qualquer innerHTML
+function escapeHtml(str) {
   if (str === null || str === undefined) return '';
   return String(str)
     .replace(/&/g, '&amp;')
@@ -153,1477 +65,1492 @@ function sanitize(str) {
     .replace(/'/g, '&#039;');
 }
 
-// Trava de segurança: se o usuário não for gerente, impede acesso à tela executiva
-function checkAccessPermission(requiredRole) {
-  if (!AppState.session || !AppState.session.user) {
-    recordSecurityIncident('ACESSO_NAO_AUTENTICADO', 'Tentativa de acesso à área restrita sem login.');
-    handleForceLogout('Sessão expirada ou inválida.');
-    return false;
-  }
-
-  const currentUser = AppState.session.user;
-
-  if (requiredRole === 'Gerente' && currentUser.role !== 'Gerente') {
-    recordSecurityIncident(
-      'VIOLACAO_RBAC_GERENTE',
-      `Tentativa de acesso ao painel do gerente por: ${currentUser.email || currentUser.username}`
-    );
-    showToast('Acesso negado: perfil de Gerente obrigatório.', 'error');
-    renderColaboradorView();
-    return false;
-  }
-
-  return true;
+// Formata data ISO (YYYY-MM-DD) pra exibição brasileira (DD/MM/YYYY)
+function formatDateBR(dateStr) {
+  if (!dateStr) return '—';
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr;
+  return parts[2] + '/' + parts[1] + '/' + parts[0];
 }
 
-// Checa se o projeto pertence ao usuário logado ou se é gerente
-function validateProjectMutation(project) {
-  if (!AppState.session || !AppState.session.user) return false;
-  
-  const user = AppState.session.user;
-  if (user.role === 'Gerente') return true;
-
-  const isOwner = (project.responsibleEmail && project.responsibleEmail.trim().toLowerCase() === user.email.trim().toLowerCase()) ||
-                  (project.responsibleUsername && user.username && project.responsibleUsername.trim().toLowerCase() === user.username.trim().toLowerCase());
-
-  if (!isOwner) {
-    recordSecurityIncident(
-      'VIOLACAO_AUTORIA_PROJETO',
-      `Usuário '${user.username || user.email}' tentou alterar o projeto '${project.id}' de '${project.responsibleName}'.`
-    );
-    showToast('Ação bloqueada: você só pode editar projetos sob sua responsabilidade.', 'error');
-    return false;
-  }
-
-  return true;
+// Gera ID único com prefixo
+function generateId(prefix) {
+  return prefix + '-' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
 }
 
-function recordSecurityIncident(type, description) {
-  const incident = {
-    id: 'SEC-' + Date.now(),
-    timestamp: new Date().toISOString(),
-    formattedDate: getFormattedNow(),
-    type: type,
-    description: description,
-    userEmail: AppState.session?.user?.email || AppState.session?.user?.username || 'ANONYMOUS'
-  };
-
-  AppState.securityLogs.unshift(incident);
-  if (AppState.securityLogs.length > 50) AppState.securityLogs.pop();
-  
-  localStorage.setItem(STORAGE_KEYS.SECURITY_LOGS, JSON.stringify(AppState.securityLogs));
-  renderSecurityBadge();
+// Retorna timestamp legível em PT-BR
+function nowTimestamp() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear() +
+    ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
 }
 
-function updateSessionActivity() {
-  if (AppState.session) {
-    AppState.session.lastActivity = Date.now();
-    localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(AppState.session));
-  }
-}
-
-function verifySessionTimeout() {
-  if (!AppState.session) return;
-
-  const now = Date.now();
-  const idleTime = now - (AppState.session.lastActivity || now);
-
-  if (idleTime > SESSION_TIMEOUT_MS) {
-    recordSecurityIncident('EXPIRACAO_SESSAO', `Sessão de ${AppState.session.user.username || AppState.session.user.email} expirada por inatividade.`);
-    handleForceLogout('Sua sessão expirou por inatividade.');
-  }
-}
-
-function initApplication() {
-  loadStoredData();
-  setupEventListeners();
-  setupSecurityActivityTrackers();
-
-  if (AppState.session && AppState.session.user) {
-    const idle = Date.now() - (AppState.session.lastActivity || 0);
-    if (idle < SESSION_TIMEOUT_MS) {
-      applyActiveSession(AppState.session.user);
-    } else {
-      handleForceLogout('Sessão expirada.');
-    }
-  } else {
-    showScreen('screen-login');
-  }
-
-  setInterval(verifySessionTimeout, 60000);
-}
-
-function loadStoredData() {
-  try {
-    const savedUsers = localStorage.getItem(STORAGE_KEYS.USERS);
-    AppState.users = savedUsers ? JSON.parse(savedUsers) : INITIAL_USERS;
-    if (!savedUsers) localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(INITIAL_USERS));
-
-    const savedProjects = localStorage.getItem(STORAGE_KEYS.PROJECTS);
-    AppState.projects = savedProjects ? JSON.parse(savedProjects) : INITIAL_PROJECTS;
-    if (!savedProjects) localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(INITIAL_PROJECTS));
-
-    const savedNotifs = localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS);
-    AppState.notifications = savedNotifs ? JSON.parse(savedNotifs) : INITIAL_NOTIFICATIONS;
-    if (!savedNotifs) localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(INITIAL_NOTIFICATIONS));
-
-    const savedLogs = localStorage.getItem(STORAGE_KEYS.SECURITY_LOGS);
-    AppState.securityLogs = savedLogs ? JSON.parse(savedLogs) : [];
-
-    const savedSession = localStorage.getItem(STORAGE_KEYS.SESSION);
-    if (savedSession) {
-      AppState.session = JSON.parse(savedSession);
-    }
-  } catch (err) {
-    console.error('Erro ao ler localStorage:', err);
-    AppState.users = INITIAL_USERS;
-    AppState.projects = INITIAL_PROJECTS;
-    AppState.notifications = INITIAL_NOTIFICATIONS;
-  }
-}
-
-function saveProjectsData() {
-  localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(AppState.projects));
-}
-
-function saveUsersData() {
-  localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(AppState.users));
-}
-
-function saveNotificationsData() {
-  localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(AppState.notifications));
-}
-
-// Controle do popover de notificacoes no cantinho
-function toggleNotificationsPopover() {
-  const popover = document.getElementById('popover-gerente-notifications');
-  if (popover) {
-    popover.classList.toggle('hidden');
-  }
-}
-
-// Notificacoes para o painel do Allan
-function addNotification(notif) {
-  AppState.notifications.unshift(notif);
-  if (AppState.notifications.length > 25) AppState.notifications.pop();
-  saveNotificationsData();
-  renderNotificationsList();
-}
-
-function clearAllNotifications() {
-  AppState.notifications = [];
-  saveNotificationsData();
-  renderNotificationsList();
-  showToast('Notificações limpas.', 'info');
-}
-
-function renderNotificationsList() {
-  const container = document.getElementById('notifications-list');
-  const badgeCount = document.getElementById('notif-badge-count');
+// ========================
+// TOAST (FEEDBACK VISUAL)
+// ========================
+function showToast(message, type) {
+  const container = document.getElementById('toast-container');
   if (!container) return;
-
-  container.innerHTML = '';
-  const count = AppState.notifications.length;
-  if (badgeCount) {
-    badgeCount.innerText = count > 0 ? `${count} novas` : '0 novas';
-    badgeCount.className = count > 0 
-      ? 'text-[10px] font-bold px-1.5 py-0.2 bg-blue-600 text-white rounded-full' 
-      : 'text-[10px] font-medium px-1.5 py-0.2 bg-slate-200 text-slate-600 rounded-full';
-  }
-
-  if (count === 0) {
-    container.innerHTML = `
-      <div class="p-3 text-center text-xs text-slate-500 italic bg-slate-50 rounded border border-slate-100">
-        Nenhuma nova notificação.
-      </div>
-    `;
-    return;
-  }
-
-  AppState.notifications.forEach(n => {
-    const item = document.createElement('div');
-    item.className = 'p-2.5 bg-slate-50 hover:bg-slate-100/80 rounded border border-slate-200 text-xs transition';
-    
-    let badgeColor = 'bg-blue-100 text-blue-800 border-blue-200';
-    if (n.changeType.includes('Prazo')) {
-      badgeColor = 'bg-amber-100 text-amber-900 border-amber-300';
-    } else if (n.changeType.includes('Status')) {
-      badgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-200';
-    }
-
-    item.innerHTML = `
-      <div class="flex items-center justify-between gap-2 mb-1">
-        <div class="flex items-center gap-1.5">
-          <span class="font-bold text-slate-900">${sanitize(n.author)}</span>
-          <span class="text-[10px] text-slate-500">(${sanitize(n.role)})</span>
-          <span class="text-[10px] font-semibold px-1.5 py-0.2 rounded border ${badgeColor}">${sanitize(n.changeType)}</span>
-        </div>
-        <span class="text-[10px] font-mono text-slate-500 shrink-0">${sanitize(n.date)}</span>
-      </div>
-      <div class="text-slate-800 font-medium">
-        <span class="font-mono text-blue-700 font-semibold cursor-pointer hover:underline" onclick="openProjectDetailModal('${n.projectId}')">[${sanitize(n.projectId)}] ${sanitize(n.projectTitle)}</span>: 
-        ${sanitize(n.details)}
-      </div>
-      ${n.message ? `
-        <div class="mt-1 text-[11px] text-slate-600 bg-white p-1.5 rounded border border-slate-200 italic">
-          &ldquo;${sanitize(n.message)}&rdquo;
-        </div>
-      ` : ''}
-    `;
-
-    container.appendChild(item);
-  });
+  const toast = document.createElement('div');
+  toast.className = 'toast' + (type ? ' ' + type : '');
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => { toast.remove(); }, 3500);
 }
 
-// Login aceita tanto usuário quanto e-mail corporativo (CarlosSouza ou UsuarioCarlosSouza)
-function handleLoginSubmit(event) {
-  event.preventDefault();
-  const credential = (document.getElementById('login-credential')?.value || '').trim();
-  const password = document.getElementById('login-password')?.value;
+// ========================
+// PERSISTÊNCIA (LOCALSTORAGE)
+// ========================
 
-  if (!credential || !password) {
-    showToast('Preencha seu usuário/e-mail e sua senha.', 'warning');
-    return;
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(AppState.users));
+    localStorage.setItem(STORAGE_KEY_PROJECTS, JSON.stringify(AppState.projects));
+    localStorage.setItem(STORAGE_KEY_NOTIFS, JSON.stringify(AppState.notifications));
+    if (AppState.session) {
+      localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(AppState.session));
+    }
+  } catch (e) {
+    // Se o localStorage tá cheio ou bloqueado, segue a vida — dados ficam só na memória
+    console.warn('[saveState] Falha ao persistir:', e);
   }
-
-  const user = AppState.users.find(u => {
-    const un = (u.username || '').toLowerCase();
-    const cred = credential.toLowerCase();
-    const matchUser = (un === cred) || 
-                      (un === 'carlossouza' && cred === 'usuariocarlossouza') || 
-                      (un === 'usuariocarlossouza' && cred === 'carlossouza');
-    const matchEmail = (u.email || '').toLowerCase() === cred;
-    return matchUser || matchEmail;
-  });
-
-  if (!user) {
-    recordSecurityIncident('LOGIN_FALHOU', `Tentativa de login inexistente: ${credential}`);
-    showToast('Usuário ou e-mail corporativo não encontrado.', 'error');
-    return;
-  }
-
-  if (user.password && user.password !== password) {
-    recordSecurityIncident('SENHA_INCORRETA', `Senha incorreta informada para: ${credential}`);
-    showToast('Senha de acesso incorreta.', 'error');
-    return;
-  }
-
-  createSession(user);
 }
 
-// Cadastro simplificado: cria usuário SEM necessidade de cliente (cliente é escolhido ao criar projeto)
-function handleRegisterSubmit(event) {
-  event.preventDefault();
-  const name = document.getElementById('reg-name')?.value.trim();
-  const username = document.getElementById('reg-username')?.value.trim();
-  const email = document.getElementById('reg-email')?.value.trim();
-  const roleSelect = document.getElementById('reg-role')?.value;
-  const govToken = document.getElementById('reg-gov-token')?.value.trim();
-  const password = document.getElementById('reg-password')?.value;
-  const passwordConfirm = document.getElementById('reg-password-confirm')?.value;
+function loadState() {
+  try {
+    const users = localStorage.getItem(STORAGE_KEY_USERS);
+    const projects = localStorage.getItem(STORAGE_KEY_PROJECTS);
+    const notifs = localStorage.getItem(STORAGE_KEY_NOTIFS);
+    const session = localStorage.getItem(STORAGE_KEY_SESSION);
 
-  if (!name || !username || !email || !password) {
-    showToast('Preencha todos os campos obrigatórios.', 'warning');
+    AppState.users = users ? JSON.parse(users) : [...DEFAULT_USERS];
+    AppState.projects = projects ? JSON.parse(projects) : [];
+    AppState.notifications = notifs ? JSON.parse(notifs) : [];
+    AppState.session = session ? JSON.parse(session) : null;
+  } catch (e) {
+    console.warn('[loadState] Falha ao carregar — resetando estado:', e);
+    AppState.users = [...DEFAULT_USERS];
+    AppState.projects = [];
+    AppState.notifications = [];
+    AppState.session = null;
+  }
+}
+
+// ========================
+// AUTENTICAÇÃO
+// ========================
+
+function handleLogin(e) {
+  e.preventDefault();
+  const credential = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errorEl = document.getElementById('login-error');
+
+  // Busca por username ou email (case-insensitive)
+  const user = AppState.users.find(u =>
+    u.username.toLowerCase() === credential.toLowerCase() ||
+    u.email.toLowerCase() === credential.toLowerCase()
+  );
+
+  if (!user || user.password !== password) {
+    errorEl.textContent = 'Usuário ou senha inválidos.';
+    errorEl.classList.remove('hidden');
     return;
   }
 
-  if (password !== passwordConfirm) {
-    showToast('As senhas digitadas não conferem.', 'error');
+  AppState.session = {
+    user: { ...user },
+    canSimulate: user.role === 'Gerente'
+  };
+  saveState();
+  showApp();
+  showToast('Bem-vindo, ' + user.name + '!', 'success');
+}
+
+function handleRegister(e) {
+  e.preventDefault();
+  const name = document.getElementById('register-name').value.trim();
+  const email = document.getElementById('register-email').value.trim();
+  const username = document.getElementById('register-username').value.trim();
+  const password = document.getElementById('register-password').value;
+  const role = document.getElementById('register-role').value;
+  const managerKey = document.getElementById('register-manager-key').value.trim();
+  const errorEl = document.getElementById('register-error');
+
+  // Validação de duplicidade
+  if (AppState.users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+    errorEl.textContent = 'Este usuário já existe.';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+  if (AppState.users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+    errorEl.textContent = 'Este e-mail já está cadastrado.';
+    errorEl.classList.remove('hidden');
     return;
   }
 
-  const existsEmail = AppState.users.some(u => u.email.toLowerCase() === email.toLowerCase());
-  if (existsEmail) {
-    showToast('Este e-mail corporativo já está cadastrado.', 'warning');
+  // Trava de segurança: pra criar conta Gerente, precisa da chave corporativa
+  if (role === 'Gerente' && managerKey !== MANAGER_KEY) {
+    errorEl.textContent = 'Chave de gerente inválida.';
+    errorEl.classList.remove('hidden');
     return;
-  }
-
-  const existsUser = AppState.users.some(u => u.username && u.username.toLowerCase() === username.toLowerCase());
-  if (existsUser) {
-    showToast('Este nome de usuário já está em uso.', 'warning');
-    return;
-  }
-
-  let finalRole = roleSelect;
-  if (roleSelect === 'Gerente') {
-    if (govToken === GOVERNANCE_KEY) {
-      finalRole = 'Gerente';
-    } else {
-      recordSecurityIncident(
-        'CHAVE_GOVERNANCA_INVALIDA',
-        `Tentativa de registro de Gerente para '${username}' (${email}) com chave inválida.`
-      );
-      showToast('Chave de Governança incorreta. Conta criada como Senior.', 'warning');
-      finalRole = 'Senior';
-    }
   }
 
   const newUser = {
-    id: 'usr_' + Date.now(),
-    name: name,
-    username: username,
-    email: email,
-    role: finalRole,
-    password: password
+    id: generateId('usr'),
+    name, email, username, password, role
   };
 
   AppState.users.push(newUser);
-  saveUsersData();
-  populateResponsibleOptions();
-  populateClientFilterOptions();
-
-  showToast(`Conta criada com sucesso: ${username} (${finalRole}).`, 'success');
-  createSession(newUser);
-}
-
-function createSession(user) {
   AppState.session = {
-    user: user,
-    token: 'jwt_mock_' + Math.random().toString(36).substring(2) + Date.now(),
-    loginTime: Date.now(),
-    lastActivity: Date.now()
+    user: { ...newUser },
+    canSimulate: role === 'Gerente'
   };
+  saveState();
 
-  localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(AppState.session));
-  applyActiveSession(user);
-  showToast(`Conectado como: ${user.name} (${user.role})`, 'info');
+  addNotification('new_user', name + ' (' + role + ') criou uma conta no portal.', null, email);
+
+  showApp();
+  showToast('Conta criada! Bem-vindo, ' + name + '.', 'success');
 }
 
-function applyActiveSession(user) {
-  document.getElementById('nav-user-name').innerText = user.name;
-  
-  const roleDisplay = user.client && user.client !== 'Geral'
-    ? `${user.role} &bull; ${sanitize(user.client)}`
-    : user.role;
-  document.getElementById('nav-user-role').innerHTML = roleDisplay;
+function toggleRegisterForm() {
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+  const toggleText = document.getElementById('login-toggle-text');
+  const toggleBtn = document.getElementById('login-toggle-btn');
 
-  const initials = user.name
-    .split(' ')
-    .map(p => p[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-  document.getElementById('nav-user-avatar').innerText = initials;
+  if (registerForm.classList.contains('hidden')) {
+    loginForm.classList.add('hidden');
+    registerForm.classList.remove('hidden');
+    toggleText.textContent = 'Já tem conta?';
+    toggleBtn.textContent = 'Fazer login';
+  } else {
+    registerForm.classList.add('hidden');
+    loginForm.classList.remove('hidden');
+    toggleText.textContent = 'Não tem conta?';
+    toggleBtn.textContent = 'Cadastre-se';
+  }
+  // Limpa erros ao trocar de formulário
+  document.getElementById('login-error').classList.add('hidden');
+  document.getElementById('register-error').classList.add('hidden');
+}
 
-  const debugSelect = document.getElementById('debug-switch-user');
-  if (debugSelect) debugSelect.value = user.email;
+function toggleManagerKeyField() {
+  const role = document.getElementById('register-role').value;
+  const group = document.getElementById('register-manager-key-group');
+  if (role === 'Gerente') {
+    group.classList.remove('hidden');
+  } else {
+    group.classList.add('hidden');
+  }
+}
 
-  showScreen('screen-app');
+function logout() {
+  AppState.session = null;
+  localStorage.removeItem(STORAGE_KEY_SESSION);
+  closeDetailDrawer();
+  closeModal('modal-new-project');
+  closeModal('modal-update-status');
+  closeModal('modal-new-ritm');
+  document.getElementById('popover-notifications')?.classList.remove('open');
+  document.getElementById('homologation-bar')?.classList.add('hidden');
+  document.getElementById('app-shell').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
+  // Limpa formulários
+  document.getElementById('login-form').reset();
+  document.getElementById('login-error').classList.add('hidden');
+}
 
-  // Todos tem a mesma aba, menos o gerente, que tem a especial para ele
+// ========================
+// RENDERIZAÇÃO PRINCIPAL
+// ========================
+
+function showApp() {
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app-shell').classList.remove('hidden');
+
+  const user = AppState.session?.user;
+  if (!user) return;
+
+  // Header
+  document.getElementById('header-username').textContent = user.name;
+  document.getElementById('header-role').textContent = user.role;
+
+  // Exibe view correta baseado no perfil
   if (user.role === 'Gerente') {
-    renderGerenteView();
+    document.getElementById('view-gerente').classList.remove('hidden');
+    document.getElementById('view-colaborador').classList.add('hidden');
+    renderManagerView();
   } else {
-    renderColaboradorView();
+    document.getElementById('view-gerente').classList.add('hidden');
+    document.getElementById('view-colaborador').classList.remove('hidden');
+    renderCollaboratorView();
   }
 
-  populateResponsibleOptions();
-  populateClientFilterOptions();
-  renderSecurityBadge();
+  // Barra de homologação só aparece se quem logou for Gerente autenticado
+  const homoBar = document.getElementById('homologation-bar');
+  if (homoBar) {
+    if (AppState.session?.canSimulate === true) {
+      homoBar.classList.remove('hidden');
+      populateDebugSwitchUser();
+    } else {
+      homoBar.classList.add('hidden');
+    }
+  }
+
+  // Componentes compartilhados
+  renderNotifications();
+  initDomGuard();
 }
 
-function handleLogout() {
-  AppState.session = null;
-  localStorage.removeItem(STORAGE_KEYS.SESSION);
-  showScreen('screen-login');
-  showToast('Desconectado com sucesso.', 'info');
-}
+// ========================
+// BADGES & HELPERS VISUAIS
+// ========================
 
-function handleForceLogout(reason) {
-  AppState.session = null;
-  localStorage.removeItem(STORAGE_KEYS.SESSION);
-  showScreen('screen-login');
-  showToast(reason || 'Sessão encerrada.', 'warning');
-}
-
-// Visao especial para gerente: painel redondo de governanca e notificacoes no cantinho
-function renderGerenteView() {
-  if (!checkAccessPermission('Gerente')) {
+// Usa as logos .webp reais da pasta como padrão; se alguma faltar ou falhar, tenta o fallback .png e por fim exibe ponto colorido limpo
+function handleClientLogoError(img) {
+  const fallbackSrc = img.getAttribute('data-fallback-src');
+  if (!img.dataset.triedFallback && fallbackSrc) {
+    img.dataset.triedFallback = '1';
+    img.src = fallbackSrc;
     return;
   }
-
-  document.getElementById('view-gerente').classList.remove('hidden');
-  document.getElementById('view-colaborador').classList.add('hidden');
-
-  updateDonutChart();
-  renderNotificationsList();
-  populateClientFilterOptions();
-  renderExecutiveTable();
+  const dotClass = img.getAttribute('data-client-class') || 'outro';
+  const dot = document.createElement('span');
+  dot.className = 'client-dot ' + dotClass;
+  img.replaceWith(dot);
 }
 
-// Atualiza o dashboard circular (donut SVG) do gerente
-function updateDonutChart() {
-  const total = AppState.projects.length;
-  const green = AppState.projects.filter(p => p.health === 'green').length;
-  const yellow = AppState.projects.filter(p => p.health === 'yellow').length;
-  const red = AppState.projects.filter(p => p.health === 'red').length;
+// Renderiza badge de cliente com mini-logo (.webp principal) e tratamento de erro
+function getClientBadgeHtml(client, clientCustom) {
+  const safeClientName = escapeHtml(client === 'Outro' ? (clientCustom || 'Outro') : client);
+  const logos = { 'XP': 'logoxp.webp', 'Santander': 'logosantander.webp', 'Vivo': 'logovivo.webp' };
+  const pngFallbacks = { 'XP': 'xp.png', 'Santander': 'santander.png', 'Vivo': 'vivo.png' };
+  const dotClasses = { 'XP': 'xp', 'Santander': 'santander', 'Vivo': 'vivo' };
+  const logo = logos[client];
+  const fallback = pngFallbacks[client] || '';
+  const dot = dotClasses[client] || 'outro';
 
-  const totalEl = document.getElementById('donut-total');
-  if (totalEl) totalEl.innerText = total;
+  if (logo) {
+    return '<span class="badge-client">' +
+      '<img src="' + escapeHtml(logo) + '" alt="" ' +
+      'data-fallback-src="' + escapeHtml(fallback) + '" ' +
+      'data-client-class="' + escapeHtml(dot) + '" ' +
+      'onerror="handleClientLogoError(this)">' +
+      '<span>' + safeClientName + '</span></span>';
+  }
+  return '<span class="badge-client"><span class="client-dot ' + escapeHtml(dot) + '"></span><span>' + safeClientName + '</span></span>';
+}
 
-  // Circunferencia para raio r=54: 2 * PI * 54 = 339.292
-  const C = 339.292;
-  const circleGreen = document.getElementById('donut-circle-green');
-  const circleYellow = document.getElementById('donut-circle-yellow');
-  const circleRed = document.getElementById('donut-circle-red');
+// Semáforo RAG
+function getHealthBadgeHtml(health) {
+  const map = {
+    green: '<span class="rag-badge rag-green">No Prazo</span>',
+    yellow: '<span class="rag-badge rag-yellow">Em Atenção</span>',
+    red: '<span class="rag-badge rag-red">Crítico</span>'
+  };
+  return map[health] || '<span class="rag-badge" style="background:#F1F5F9;color:#64748B;border:1px solid #CBD5E1">—</span>';
+}
 
-  if (total === 0) {
-    if (circleGreen) circleGreen.setAttribute('stroke-dasharray', `0 ${C}`);
-    if (circleYellow) circleYellow.setAttribute('stroke-dasharray', `0 ${C}`);
-    if (circleRed) circleRed.setAttribute('stroke-dasharray', `0 ${C}`);
-  } else {
-    const lenGreen = (green / total) * C;
-    const lenYellow = (yellow / total) * C;
-    const lenRed = (red / total) * C;
+// Status badge
+function getStatusBadgeHtml(status) {
+  const map = {
+    'A Iniciar': '<span class="status-badge status-a-iniciar">A Iniciar</span>',
+    'Em Andamento': '<span class="status-badge status-em-andamento">Em Andamento</span>',
+    'Em Homologação': '<span class="status-badge status-em-homologacao">Em Homologação</span>',
+    'Concluído': '<span class="status-badge status-concluido">Concluído</span>'
+  };
+  return map[status] || '<span class="status-badge">' + escapeHtml(status) + '</span>';
+}
 
-    if (circleGreen) {
-      circleGreen.setAttribute('stroke-dasharray', `${lenGreen} ${C}`);
-      circleGreen.setAttribute('stroke-dashoffset', '0');
-    }
-    if (circleYellow) {
-      circleYellow.setAttribute('stroke-dasharray', `${lenYellow} ${C}`);
-      circleYellow.setAttribute('stroke-dashoffset', `-${lenGreen}`);
-    }
-    if (circleRed) {
-      circleRed.setAttribute('stroke-dasharray', `${lenRed} ${C}`);
-      circleRed.setAttribute('stroke-dashoffset', `-${lenGreen + lenYellow}`);
-    }
+// Severidade do chamado Hypercare
+function getSeverityBadgeHtml(severity) {
+  const map = {
+    'Alta P2': '<span class="badge-severity badge-p2">Alta P2</span>',
+    'Média P3': '<span class="badge-severity badge-p3">Média P3</span>',
+    'Baixa P4': '<span class="badge-severity badge-p4">Baixa P4</span>',
+    'Melhoria P5': '<span class="badge-severity badge-p5">Melhoria P5</span>'
+  };
+  return map[severity] || '<span class="badge-severity">' + escapeHtml(severity) + '</span>';
+}
+
+// Classe CSS da barra de progresso conforme saúde
+function getProgressFillClass(health) {
+  if (health === 'red') return 'danger';
+  if (health === 'yellow') return 'warning';
+  return '';
+}
+
+// ========================
+// VISÃO DO GERENTE — PAINEL COMPLETO
+// ========================
+
+function renderManagerView() {
+  if (!checkAccessPermission('Gerente')) return;
+  populateFilterOptions();
+  renderKPIs();
+  renderProjectTable();
+}
+
+// ========================
+// FILTROS DINÂMICOS
+// ========================
+
+function populateFilterOptions() {
+  const projects = AppState.projects;
+
+  // Programas únicos
+  const programs = [...new Set(projects.map(p => p.program).filter(Boolean))].sort();
+  const progSelect = document.getElementById('filter-program');
+  if (progSelect) {
+    const currentVal = progSelect.value;
+    progSelect.innerHTML = '<option value="">Todos</option>' +
+      programs.map(p => '<option value="' + escapeHtml(p) + '">' + escapeHtml(p) + '</option>').join('');
+    progSelect.value = currentVal;
   }
 
-  // Legendas com porcentagem
-  const pctGreen = total > 0 ? Math.round((green / total) * 100) : 0;
-  const pctYellow = total > 0 ? Math.round((yellow / total) * 100) : 0;
-  const pctRed = total > 0 ? Math.round((red / total) * 100) : 0;
-
-  const legGreen = document.getElementById('legend-green-count');
-  const legYellow = document.getElementById('legend-yellow-count');
-  const legRed = document.getElementById('legend-red-count');
-
-  if (legGreen) legGreen.innerText = `${green} (${pctGreen}%)`;
-  if (legYellow) legYellow.innerText = `${yellow} (${pctYellow}%)`;
-  if (legRed) legRed.innerText = `${red} (${pctRed}%)`;
-
-  // Taxa media de entrega
-  const avg = total > 0 ? Math.round(AppState.projects.reduce((acc, p) => acc + (p.progress || 0), 0) / total) : 0;
-  const avgEl = document.getElementById('donut-avg-progress');
-  if (avgEl) avgEl.innerText = `${avg}%`;
-
-  // Gauge circular de entrega r=25: 2 * PI * 25 = 157.08
-  const C_avg = 157.08;
-  const circleAvg = document.getElementById('donut-circle-avg');
-  if (circleAvg) {
-    const lenAvg = (avg / 100) * C_avg;
-    circleAvg.setAttribute('stroke-dasharray', `${lenAvg} ${C_avg}`);
+  // Módulos únicos
+  const modules = [...new Set(projects.map(p => p.module).filter(Boolean))].sort();
+  const modSelect = document.getElementById('filter-module');
+  if (modSelect) {
+    const currentVal = modSelect.value;
+    modSelect.innerHTML = '<option value="">Todos</option>' +
+      modules.map(m => '<option value="' + escapeHtml(m) + '">' + escapeHtml(m) + '</option>').join('');
+    modSelect.value = currentVal;
   }
 
-  // Clientes ativos consolidados
-  const activeClientsEl = document.getElementById('donut-active-clients');
-  if (activeClientsEl) {
-    const clients = [...new Set(AppState.projects.map(p => p.client || 'Geral').filter(Boolean))];
-    activeClientsEl.innerText = clients.length > 0 ? clients.join(', ') : 'Nenhum';
+  // Responsáveis únicos
+  const responsibles = [...new Set(projects.map(p => p.responsibleName).filter(Boolean))].sort();
+  const respSelect = document.getElementById('filter-responsible');
+  if (respSelect) {
+    const currentVal = respSelect.value;
+    respSelect.innerHTML = '<option value="">Todos</option>' +
+      responsibles.map(r => '<option value="' + escapeHtml(r) + '">' + escapeHtml(r) + '</option>').join('');
+    respSelect.value = currentVal;
+  }
+
+  // Datalists pro modal de novo projeto (sugestões inteligentes)
+  const dlProgs = document.getElementById('dl-programs');
+  if (dlProgs) {
+    dlProgs.innerHTML = programs.map(p => '<option value="' + escapeHtml(p) + '">').join('');
+  }
+  const dlMods = document.getElementById('dl-modules');
+  if (dlMods) {
+    dlMods.innerHTML = modules.map(m => '<option value="' + escapeHtml(m) + '">').join('');
   }
 }
 
-function renderExecutiveTable() {
-  if (!AppState.session || AppState.session.user.role !== 'Gerente') {
-    return;
-  }
+function setFilterClient(client) {
+  AppState.filters.client = client;
 
-  const searchVal = (document.getElementById('table-search-input')?.value || '').toLowerCase().trim();
-  const filterClient = document.getElementById('table-filter-client')?.value || 'all';
-  const filterColab = document.getElementById('table-filter-colab')?.value || 'all';
-  const filterHealth = document.getElementById('table-filter-health')?.value || 'all';
-
-  const tbody = document.getElementById('executive-table-body');
-  const emptyRow = document.getElementById('executive-table-empty');
-  tbody.innerHTML = '';
-
-  const filtered = AppState.projects.filter(p => {
-    const clientName = p.client || 'Geral';
-    const matchesSearch = !searchVal ||
-      p.title.toLowerCase().includes(searchVal) ||
-      p.id.toLowerCase().includes(searchVal) ||
-      clientName.toLowerCase().includes(searchVal) ||
-      p.category.toLowerCase().includes(searchVal) ||
-      p.responsibleName.toLowerCase().includes(searchVal);
-
-    const matchesClient = filterClient === 'all' || clientName.toLowerCase() === filterClient.toLowerCase();
-    const matchesColab = filterColab === 'all' || p.responsibleEmail.toLowerCase() === filterColab.toLowerCase();
-    const matchesHealth = filterHealth === 'all' || p.health === filterHealth;
-
-    return matchesSearch && matchesClient && matchesColab && matchesHealth;
+  // Atualiza visual dos botões de cliente
+  const buttons = document.querySelectorAll('#client-filter-buttons .client-filter-btn');
+  buttons.forEach(btn => {
+    const btnClient = btn.getAttribute('onclick')?.match(/setFilterClient\('(.+?)'\)/)?.[1];
+    if (btnClient === client) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
   });
 
-  if (filtered.length === 0) {
-    emptyRow.classList.remove('hidden');
+  applyFilters();
+}
+
+function applyFilters() {
+  AppState.filters.program = document.getElementById('filter-program')?.value || '';
+  AppState.filters.module = document.getElementById('filter-module')?.value || '';
+  AppState.filters.responsible = document.getElementById('filter-responsible')?.value || '';
+  AppState.filters.health = document.getElementById('filter-health')?.value || '';
+
+  renderKPIs();
+  renderProjectTable();
+}
+
+function clearFilters() {
+  AppState.filters = { client: 'all', program: '', module: '', responsible: '', health: '' };
+
+  // Reset visual
+  const selects = ['filter-program', 'filter-module', 'filter-responsible', 'filter-health'];
+  selects.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+
+  setFilterClient('all');
+}
+
+// Retorna projetos filtrados conforme seleção ativa
+function getFilteredProjects() {
+  let filtered = AppState.projects;
+  const f = AppState.filters;
+
+  if (f.client !== 'all') {
+    filtered = filtered.filter(p => p.client === f.client);
+  }
+  if (f.program) {
+    filtered = filtered.filter(p => p.program === f.program);
+  }
+  if (f.module) {
+    filtered = filtered.filter(p => p.module === f.module);
+  }
+  if (f.responsible) {
+    filtered = filtered.filter(p => p.responsibleName === f.responsible);
+  }
+  if (f.health) {
+    filtered = filtered.filter(p => p.health === f.health);
+  }
+
+  return filtered;
+}
+
+// ========================
+// KPI CARDS (CALCULADOS AUTOMATICAMENTE)
+// ========================
+
+function renderKPIs() {
+  if (!checkAccessPermission('Gerente')) return;
+  const projects = getFilteredProjects();
+  const total = projects.length;
+
+  // Se não tem nenhum projeto, zera tudo
+  const avg = total > 0
+    ? Math.round(projects.reduce((sum, p) => sum + (Number(p.progress) || 0), 0) / total)
+    : 0;
+  const green = projects.filter(p => p.health === 'green').length;
+  const yellow = projects.filter(p => p.health === 'yellow').length;
+  const red = projects.filter(p => p.health === 'red').length;
+
+  const reprogrammed = projects.filter(p => p.baselineEnd && p.newEnd && p.baselineEnd !== p.newEnd).length;
+  const activeRitms = projects.reduce((sum, p) => sum + (p.ritms || []).filter(r => r.status !== 'Concluído').length, 0);
+
+  const pctOf = (n) => total > 0 ? Math.round((n / total) * 100) + '%' : '0%';
+
+  const el = (id) => document.getElementById(id);
+  if (el('kpi-total')) el('kpi-total').textContent = total;
+  if (el('kpi-avg')) el('kpi-avg').textContent = 'Média: ' + avg + '%';
+  if (el('kpi-green')) el('kpi-green').textContent = green;
+  if (el('kpi-green-pct')) el('kpi-green-pct').textContent = pctOf(green) + ' do total';
+  if (el('kpi-yellow')) el('kpi-yellow').textContent = yellow;
+  if (el('kpi-yellow-pct')) el('kpi-yellow-pct').textContent = pctOf(yellow) + (reprogrammed > 0 ? ' • ' + reprogrammed + ' reprogramado(s)' : ' do total');
+  if (el('kpi-red')) el('kpi-red').textContent = red;
+  if (el('kpi-red-pct')) el('kpi-red-pct').textContent = pctOf(red) + (activeRitms > 0 ? ' • ' + activeRitms + ' chamado(s) aberto(s)' : ' do total');
+}
+
+// ========================
+// TABELA PRINCIPAL DO GERENTE
+// ========================
+
+function renderProjectTable() {
+  if (!checkAccessPermission('Gerente')) return;
+  const tbody = document.getElementById('tbody-principal');
+  const countEl = document.getElementById('table-count');
+  if (!tbody) return;
+
+  const projects = getFilteredProjects();
+
+  if (countEl) {
+    countEl.textContent = projects.length + (projects.length === 1 ? ' registro' : ' registros');
+  }
+
+  // Empty state: nenhuma frente cadastrada ou encontrada nos filtros
+  if (projects.length === 0) {
+    const isFiltered = AppState.projects.length > 0;
+    tbody.innerHTML = '<tr><td colspan="8">' +
+      '<div class="empty-state">' +
+      '<svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">' +
+      '<rect x="3" y="3" width="18" height="18" rx="2"/>' +
+      '<path d="M3 9h18M9 21V9"/>' +
+      '</svg>' +
+      '<div class="empty-state-title">' +
+      (isFiltered ? 'Nenhum resultado para os filtros selecionados' : 'Nenhuma frente ou projeto cadastrado') +
+      '</div>' +
+      '<div class="empty-state-text">' +
+      (isFiltered
+        ? 'Tente ajustar os filtros acima ou limpar a seleção para ver todos os registros.'
+        : 'A base está limpa e pronta para uso. Cadastre a primeira frente de trabalho para começar o acompanhamento.') +
+      '</div>' +
+      (isFiltered
+        ? '<button class="btn-secondary" onclick="clearFilters()">Limpar Filtros</button>'
+        : '<button class="btn-primary" onclick="openNewProjectModal()">+ Cadastrar Primeira Frente</button>') +
+      '</div>' +
+      '</td></tr>';
     return;
   }
-  emptyRow.classList.add('hidden');
 
-  filtered.forEach(project => {
-    const tr = document.createElement('tr');
+  tbody.innerHTML = projects.map(p => {
+    const clientBadge = getClientBadgeHtml(p.client, p.clientCustom);
+    const healthBadge = getHealthBadgeHtml(p.health);
+    const statusBadge = getStatusBadgeHtml(p.status);
+    const fillClass = getProgressFillClass(p.health);
 
-    let barColor = 'bg-blue-600';
-    if (project.health === 'yellow') barColor = 'bg-amber-500';
-    if (project.health === 'red') barColor = 'bg-rose-600';
-    if (project.health === 'green' && project.progress === 100) barColor = 'bg-emerald-600';
+    // Variação de prazo: destaca se houve reprogramação
+    const hasVariance = p.baselineEnd && p.newEnd && p.baselineEnd !== p.newEnd;
+    const newEndHtml = hasVariance
+      ? '<span class="variance-tag">' + escapeHtml(formatDateBR(p.newEnd)) + ' <span class="variance-delta">\u0394</span></span>'
+      : (p.newEnd ? '<span style="color:#334155">' + escapeHtml(formatDateBR(p.newEnd)) + '</span>' : '<span style="color:#94A3B8">—</span>');
 
-    const healthBadge = renderHealthBadgeHTML(project.health);
-    const dateFormatted = formatDateBR(project.deadline);
-    const clientBadge = renderClientBadgeHTML(project.client);
+    // Conta RITMs vinculados (pra exibir no semáforo)
+    const ritmCount = (p.ritms && p.ritms.length) || 0;
+    const ritmBadge = ritmCount > 0
+      ? '<span class="ritm-count-badge">' + Number(ritmCount) + ' RITM' + (ritmCount > 1 ? 's' : '') + '</span>'
+      : '';
 
-    const respUser = AppState.users.find(u => 
-      (u.email && u.email.toLowerCase() === project.responsibleEmail.toLowerCase()) ||
-      (u.username && project.responsibleUsername && u.username.toLowerCase() === project.responsibleUsername.toLowerCase())
-    );
-    const respCargo = respUser ? respUser.role : 'Colaborador';
-
-    tr.innerHTML = `
-      <td class="font-medium text-slate-900">
-        <div class="flex items-center gap-2">
-          <span class="text-[11px] font-mono text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">${sanitize(project.id)}</span>
-          <span class="font-semibold text-slate-800 hover:text-blue-700 cursor-pointer" onclick="openProjectDetailModal('${project.id}')">
-            ${sanitize(project.title)}
-          </span>
-        </div>
-        <div class="text-[11px] text-slate-500 mt-0.5">${sanitize(project.category)}</div>
-      </td>
-      <td>
-        ${clientBadge}
-      </td>
-      <td>
-        <div class="text-xs font-semibold text-slate-800">${sanitize(project.responsibleName)}</div>
-        <div class="text-[11px] text-slate-500">${sanitize(respCargo)} &bull; ${sanitize(project.responsibleEmail)}</div>
-      </td>
-      <td>
-        <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-medium bg-slate-100 text-slate-700 rounded border border-slate-200">
-          ${sanitize(project.status)}
-        </span>
-      </td>
-      <td>
-        ${healthBadge}
-      </td>
-      <td>
-        <div class="flex items-center gap-2">
-          <div class="w-16 bg-slate-100 h-1.5 rounded overflow-hidden border border-slate-200">
-            <div class="${barColor} h-1.5" style="width: ${project.progress}%"></div>
-          </div>
-          <span class="text-xs font-semibold font-mono text-slate-700">${project.progress}%</span>
-        </div>
-      </td>
-      <td class="text-xs font-mono text-slate-700">
-        ${project.deadline === 'Indeterminado' ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-300">Indeterminado</span>' : dateFormatted}
-      </td>
-      <td class="text-center">
-        <div class="flex items-center justify-center gap-1">
-          <button 
-            onclick="openProjectDetailModal('${project.id}')"
-            title="Ver Detalhes e Histórico" 
-            class="p-1 text-slate-500 hover:text-blue-700 hover:bg-slate-100 rounded"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-          </button>
-          <button 
-            onclick="openUpdateStatusModal('${project.id}')"
-            title="Atualizar Status / Prazo" 
-            class="p-1 text-slate-500 hover:text-blue-700 hover:bg-slate-100 rounded"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-          </button>
-          <button 
-            onclick="handleDeleteProject('${project.id}')"
-            title="Remover projeto incorreto" 
-            class="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-          </button>
-        </div>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+    return '<tr>' +
+      '<td>' +
+        '<div style="display:flex;flex-direction:column;gap:2px">' +
+          clientBadge +
+          '<span style="font-size:12px;font-weight:600;color:#0F172A;line-height:1.3">' + escapeHtml(p.program) + '</span>' +
+        '</div>' +
+      '</td>' +
+      '<td>' +
+        '<div style="display:flex;flex-direction:column;gap:2px">' +
+          '<span style="font-size:12px;font-weight:700;color:#0F172A;line-height:1.3" title="' + escapeHtml(p.title) + '">' + escapeHtml(p.title) + '</span>' +
+          '<span style="font-size:10px;color:#64748B;font-weight:600">' + escapeHtml(p.module) + '</span>' +
+        '</div>' +
+      '</td>' +
+      '<td>' +
+        '<div style="display:flex;flex-direction:column;gap:1px">' +
+          '<span style="font-size:12px;font-weight:600;color:#0F172A">' + escapeHtml(p.responsibleName) + '</span>' +
+          '<span style="font-size:10px;color:#64748B">' + escapeHtml(p.squad) + '</span>' +
+        '</div>' +
+      '</td>' +
+      '<td class="font-mono tabular-nums" style="white-space:nowrap;color:#64748B">' + escapeHtml(formatDateBR(p.baselineEnd)) + '</td>' +
+      '<td style="white-space:nowrap">' + newEndHtml + '</td>' +
+      '<td>' +
+        '<div style="display:flex;flex-direction:column;gap:4px;min-width:120px">' +
+          statusBadge +
+          '<div style="display:flex;align-items:center;gap:6px">' +
+            '<div class="progress-bar-track" style="flex:1">' +
+              '<div class="progress-bar-fill ' + escapeHtml(fillClass) + '" style="width:' + Number(p.progress) + '%"></div>' +
+            '</div>' +
+            '<span class="font-mono tabular-nums" style="font-size:11px;font-weight:700;color:#0F172A;min-width:30px;text-align:right">' + Number(p.progress) + '%</span>' +
+          '</div>' +
+        '</div>' +
+      '</td>' +
+      '<td style="white-space:nowrap;text-align:center">' + healthBadge + ritmBadge + '</td>' +
+      '<td class="text-right" style="white-space:nowrap">' +
+        '<button class="btn-secondary btn-sm" onclick="openDetailDrawer(\'' + escapeHtml(p.id) + '\')" title="Abrir detalhes da frente">Abrir Detalhes</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
 }
 
-function filterByHealthKpi(health) {
-  const select = document.getElementById('table-filter-health');
-  if (select) {
-    select.value = health;
-    renderExecutiveTable();
+// ========================
+// VISÃO DO COLABORADOR
+// ========================
+
+function renderCollaboratorView() {
+  const container = document.getElementById('colab-cards-container');
+  const welcomeEl = document.getElementById('colab-welcome');
+  if (!container) return;
+
+  const user = AppState.session?.user;
+  if (!user) return;
+
+  if (welcomeEl) {
+    welcomeEl.textContent = 'Meus Projetos — ' + user.name;
   }
-}
 
-// Visao para Trainee, Especialista e Senior
-function renderColaboradorView() {
-  if (!AppState.session || !AppState.session.user) return;
-
-  const user = AppState.session.user;
-
-  document.getElementById('view-gerente').classList.add('hidden');
-  document.getElementById('view-colaborador').classList.remove('hidden');
-
-  document.getElementById('colab-banner-name').innerText = user.name;
-  const colabRoleDisplay = user.client && user.client !== 'Geral'
-    ? `${user.role} &bull; ${sanitize(user.client)}`
-    : user.role;
-  document.getElementById('colab-banner-role').innerHTML = colabRoleDisplay;
-
-  const myProjects = AppState.projects.filter(p => 
-    (p.responsibleEmail && p.responsibleEmail.toLowerCase() === user.email.toLowerCase()) ||
-    (p.responsibleUsername && user.username && p.responsibleUsername.toLowerCase() === user.username.toLowerCase())
+  // Trava de segurança: colaborador só vê frentes onde ele é o responsável
+  const myProjects = AppState.projects.filter(p =>
+    p.responsibleEmail?.toLowerCase() === user.email?.toLowerCase()
   );
 
-  document.getElementById('colab-kpi-total').innerText = myProjects.length;
-  const avg = myProjects.length > 0 
-    ? Math.round(myProjects.reduce((acc, c) => acc + c.progress, 0) / myProjects.length)
-    : 0;
-  document.getElementById('colab-kpi-avg').innerText = avg + '%';
-  const alerts = myProjects.filter(p => p.health === 'yellow' || p.health === 'red').length;
-  document.getElementById('colab-kpi-alerts').innerText = alerts;
-
-  const container = document.getElementById('colab-projects-container');
-  const emptyState = document.getElementById('colab-empty-state');
-  container.innerHTML = '';
-
+  // Empty state personalizado pro colaborador
   if (myProjects.length === 0) {
-    emptyState.classList.remove('hidden');
+    container.innerHTML =
+      '<div class="empty-state" style="grid-column:1/-1">' +
+        '<svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">' +
+          '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>' +
+          '<polyline points="14 2 14 8 20 8"/>' +
+          '<line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>' +
+        '</svg>' +
+        '<div class="empty-state-title">Você ainda não possui frentes atribuídas</div>' +
+        '<div class="empty-state-text">Cadastre um novo projeto ou aguarde a atribuição pelo gerente.</div>' +
+        '<button class="btn-primary" onclick="openNewProjectModal()">+ Cadastrar Minha Primeira Frente</button>' +
+      '</div>';
     return;
   }
-  emptyState.classList.add('hidden');
 
-  myProjects.forEach(project => {
-    const card = document.createElement('div');
-    card.className = 'bg-white rounded-md border border-slate-200 shadow-xs p-4 flex flex-col justify-between hover:border-slate-300 transition';
+  container.innerHTML = myProjects.map(p => {
+    const clientBadge = getClientBadgeHtml(p.client, p.clientCustom);
+    const healthBadge = getHealthBadgeHtml(p.health);
+    const fillClass = getProgressFillClass(p.health);
+    const ritmCount = (p.ritms && p.ritms.length) || 0;
 
-    let barColor = 'bg-blue-600';
-    if (project.health === 'yellow') barColor = 'bg-amber-500';
-    if (project.health === 'red') barColor = 'bg-rose-600';
+    return '<div class="colab-project-card">' +
+      '<div>' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">' +
+          clientBadge +
+          healthBadge +
+        '</div>' +
+        '<h3 style="font-size:14px;font-weight:700;color:#0F172A;line-height:1.3;margin-bottom:4px">' + escapeHtml(p.title) + '</h3>' +
+        '<p style="font-size:11px;color:#64748B;margin-bottom:12px">' +
+          escapeHtml(p.program) + ' &bull; ' + escapeHtml(p.module) + ' &bull; ' + escapeHtml(p.squad) +
+        '</p>' +
+        '<div style="margin-bottom:8px">' +
+          '<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:600;color:#334155;margin-bottom:4px">' +
+            '<span>Progresso</span>' +
+            '<span class="font-mono tabular-nums" style="font-weight:700;color:#1D4ED8">' + Number(p.progress) + '%</span>' +
+          '</div>' +
+          '<div class="progress-bar-track">' +
+            '<div class="progress-bar-fill ' + escapeHtml(fillClass) + '" style="width:' + Number(p.progress) + '%"></div>' +
+          '</div>' +
+        '</div>' +
+        '<p class="font-mono tabular-nums" style="font-size:11px;color:#64748B">' +
+          'Prazo: <span style="font-weight:700;color:#0F172A">' +
+          escapeHtml(formatDateBR(p.newEnd || p.baselineEnd)) + '</span>' +
+          (ritmCount > 0 ? ' &bull; <span style="color:#C2410C;font-weight:600">' + Number(ritmCount) + ' chamado' + (ritmCount > 1 ? 's' : '') + '</span>' : '') +
+        '</p>' +
+        (p.weeklyNotes ? '<div style="margin-top:8px;padding:8px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;font-size:11px;color:#64748B;font-style:italic">&quot;' + escapeHtml(p.weeklyNotes) + '&quot;</div>' : '') +
+      '</div>' +
+      '<div style="padding-top:12px;border-top:1px solid #E2E8F0;margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:8px">' +
+        '<button class="btn-secondary btn-sm" onclick="openDetailDrawer(\'' + escapeHtml(p.id) + '\')">Detalhes</button>' +
+        '<button class="btn-primary btn-sm" onclick="openUpdateStatusModal(\'' + escapeHtml(p.id) + '\')">Atualizar Status</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
 
-    const healthBadge = renderHealthBadgeHTML(project.health);
-    const dateFormatted = formatDateBR(project.deadline);
-    const clientBadge = renderClientBadgeHTML(project.client);
+// ========================
+// DRAWER DE DETALHAMENTO (DRILL-DOWN)
+// ========================
 
-    card.innerHTML = `
-      <div>
-        <div class="flex items-center justify-between gap-2 mb-2">
-          <div class="flex items-center gap-1.5">
-            <span class="text-[11px] font-mono text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">${sanitize(project.id)}</span>
-            ${clientBadge}
-          </div>
-          ${healthBadge}
-        </div>
+function openDetailDrawer(projectId) {
+  const project = AppState.projects.find(p => p.id === projectId);
+  if (!project) { showToast('Projeto não encontrado.', 'error'); return; }
 
-        <h3 class="text-sm font-bold text-slate-900 leading-snug hover:text-blue-700 cursor-pointer" onclick="openProjectDetailModal('${project.id}')">
-          ${sanitize(project.title)}
-        </h3>
+  // Anti-IDOR: colaborador só abre detalhe de projeto dele ou se for gerente
+  const user = AppState.session?.user;
+  if (user?.role !== 'Gerente' && project.responsibleEmail?.toLowerCase() !== user?.email?.toLowerCase()) {
+    showToast('Você não tem permissão para acessar este projeto.', 'error');
+    return;
+  }
 
-        <div class="text-[11px] text-slate-500 mt-1">${sanitize(project.category)}</div>
+  AppState.drawerProjectId = projectId;
+  AppState.drawerTab = 'roadmap';
 
-        <p class="text-xs text-slate-600 mt-2 line-clamp-2 leading-relaxed">
-          ${sanitize(project.description)}
-        </p>
+  // Preenche header do drawer
+  document.getElementById('drawer-project-id').textContent = project.id;
+  document.getElementById('drawer-project-title').textContent = project.title;
+  document.getElementById('drawer-project-meta').textContent =
+    'Resp: ' + project.responsibleName + ' | Squad: ' + project.squad +
+    ' | Prazo: ' + formatDateBR(project.newEnd || project.baselineEnd);
+  document.getElementById('drawer-client-badge').innerHTML = getClientBadgeHtml(project.client, project.clientCustom);
 
-        <div class="mt-4 pt-3 border-t border-slate-100">
-          <div class="flex justify-between items-center text-xs font-semibold text-slate-700 mb-1">
-            <span class="text-[11px] text-slate-500 font-normal">Progresso:</span>
-            <span>${project.progress}%</span>
-          </div>
-          <div class="w-full bg-slate-100 h-2 rounded-xs overflow-hidden border border-slate-200">
-            <div class="${barColor} h-2" style="width: ${project.progress}%"></div>
-          </div>
-        </div>
+  // Progresso e saúde
+  const pBar = document.getElementById('drawer-progress-bar');
+  const pVal = document.getElementById('drawer-progress-val');
+  const hBadge = document.getElementById('drawer-health-badge');
+  const sInfo = document.getElementById('drawer-status-info');
+  if (pBar) {
+    pBar.style.width = Number(project.progress) + '%';
+    pBar.className = 'progress-bar-fill ' + getProgressFillClass(project.health);
+  }
+  if (pVal) pVal.textContent = Number(project.progress) + '%';
+  if (hBadge) hBadge.innerHTML = getHealthBadgeHtml(project.health);
+  if (sInfo) sInfo.innerHTML = getStatusBadgeHtml(project.status) +
+    '<span style="margin-left:8px;font-size:11px;color:#64748B">Módulo: ' + escapeHtml(project.module) + ' | Programa: ' + escapeHtml(project.program) + '</span>';
 
-        <div class="mt-3 space-y-2 text-xs">
-          <div class="flex justify-between text-slate-600 text-[11px]">
-            <span>Prazo:</span>
-            <span class="font-mono font-semibold text-slate-800">${dateFormatted}</span>
-          </div>
+  // Aba Roadmap
+  renderDrawerRoadmap(project);
 
-          ${project.weeklyNotes ? `
-            <div class="p-2 bg-slate-50 rounded border border-slate-100 text-[11px] text-slate-700">
-              <span class="font-bold text-slate-800 block mb-0.5">Nota da Semana:</span>
-              <span class="line-clamp-2 italic">"${sanitize(project.weeklyNotes)}"</span>
-            </div>
-          ` : ''}
-        </div>
-      </div>
+  // Aba Hypercare
+  renderDrawerHypercare(project);
 
-      <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-1.5">
-        <button 
-          onclick="openUpdateStatusModal('${project.id}')"
-          class="flex-1 py-1.5 px-3 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white font-semibold text-xs rounded transition flex items-center justify-center gap-1.5 shadow-xs"
-        >
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-          Atualizar Status
-        </button>
-        <button 
-          onclick="openProjectDetailModal('${project.id}')"
-          title="Ver detalhes"
-          class="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded border border-slate-200 transition"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
-        </button>
-        <button 
-          onclick="handleDeleteProject('${project.id}')"
-          title="Remover projeto incorreto" 
-          class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded border border-slate-200 hover:border-rose-300 transition"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-        </button>
-      </div>
-    `;
+  // Botão excluir: só gerente ou autor
+  const deleteBtn = document.getElementById('drawer-delete-btn');
+  if (deleteBtn) {
+    if (user?.role === 'Gerente' || project.responsibleEmail?.toLowerCase() === user?.email?.toLowerCase()) {
+      deleteBtn.classList.remove('hidden');
+    } else {
+      deleteBtn.classList.add('hidden');
+    }
+  }
 
-    container.appendChild(card);
+  // Tab ativa
+  switchDrawerTab('roadmap');
+
+  // Abre o drawer
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.getElementById('drawer-panel').classList.add('open');
+}
+
+function closeDetailDrawer() {
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.getElementById('drawer-panel').classList.remove('open');
+  AppState.drawerProjectId = null;
+}
+
+function switchDrawerTab(tab) {
+  AppState.drawerTab = tab;
+  const tabs = { roadmap: 'panel-roadmap', hypercare: 'panel-hypercare' };
+  const btns = { roadmap: 'tab-roadmap', hypercare: 'tab-hypercare' };
+
+  Object.keys(tabs).forEach(t => {
+    const panel = document.getElementById(tabs[t]);
+    const btn = document.getElementById(btns[t]);
+    if (t === tab) {
+      panel?.classList.add('active');
+      btn?.classList.add('active');
+    } else {
+      panel?.classList.remove('active');
+      btn?.classList.remove('active');
+    }
   });
 }
 
-function toggleUpdateIndefiniteDeadline(isIndefinite) {
-  const dateInput = document.getElementById('modal-update-deadline');
-  if (!dateInput) return;
-  if (isIndefinite) {
-    dateInput.value = '';
-    dateInput.disabled = true;
-    dateInput.required = false;
-    dateInput.classList.add('opacity-50', 'bg-slate-200');
+function renderDrawerRoadmap(project) {
+  // Descrição / Escopo
+  const descEl = document.getElementById('drawer-description');
+  if (descEl) descEl.textContent = project.description || 'Sem descrição registrada.';
+
+  // Pré-requisitos & Impacto
+  const prEl = document.getElementById('drawer-prereqs-impact');
+  if (prEl) {
+    prEl.innerHTML =
+      '<p><strong>Pré-requisitos:</strong> ' + escapeHtml(project.prereqs || 'Não informados.') + '</p>' +
+      '<p><strong>Impacto caso não concluída:</strong> ' + escapeHtml(project.impact || 'Não informado.') + '</p>';
+  }
+
+  // Notas da semana
+  const notesEl = document.getElementById('drawer-weekly-notes');
+  if (notesEl) notesEl.textContent = project.weeklyNotes || 'Sem notas registradas nesta semana.';
+
+  // Sub-entregas
+  const subEl = document.getElementById('drawer-subitems');
+  if (subEl) {
+    const items = project.subitems && project.subitems.length > 0 ? project.subitems : [];
+    if (items.length === 0) {
+      subEl.innerHTML = '<div class="detail-block" style="color:#94A3B8;font-style:italic">Nenhuma sub-entrega cadastrada.</div>';
+    } else {
+      subEl.innerHTML = items.map((item, idx) =>
+        '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:4px;margin-bottom:4px;font-size:12px;color:#334155">' +
+          '<span style="width:20px;height:20px;border-radius:50%;background:#EFF6FF;color:#1D4ED8;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">' + Number(idx + 1) + '</span>' +
+          '<span>' + escapeHtml(item) + '</span>' +
+        '</div>'
+      ).join('');
+    }
+  }
+
+  // Comentários
+  renderDrawerComments(project);
+}
+
+function renderDrawerComments(project) {
+  const listEl = document.getElementById('drawer-comments-list');
+  if (!listEl) return;
+
+  const comments = project.comments || [];
+  if (comments.length === 0) {
+    listEl.innerHTML = '<div style="padding:12px;font-size:12px;color:#94A3B8;font-style:italic">Nenhum comentário registrado.</div>';
+    return;
+  }
+
+  listEl.innerHTML = comments.map(c =>
+    '<div class="comment-item">' +
+      '<span class="comment-author">' + escapeHtml(c.author) + '</span>' +
+      '<span class="comment-time">' + escapeHtml(c.timestamp) + '</span>' +
+      '<div class="comment-text">' + escapeHtml(c.text) + '</div>' +
+    '</div>'
+  ).join('');
+}
+
+function renderDrawerHypercare(project) {
+  const tbody = document.getElementById('drawer-ritms-tbody');
+  if (!tbody) return;
+
+  const ritms = project.ritms || [];
+  if (ritms.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="padding:24px;text-align:center;font-size:12px;color:#94A3B8;font-style:italic">' +
+      'Nenhum chamado vinculado a esta frente. Clique em "+ Novo Chamado" para registrar.' +
+      '</td></tr>';
+    return;
+  }
+
+  const statuses = ['Em análise', 'Concluído', 'Chamado SAP', 'Pendente'];
+
+  tbody.innerHTML = ritms.map(r => {
+    const sevBadge = getSeverityBadgeHtml(r.severity);
+    const optionsHtml = statuses.map(s =>
+      '<option value="' + escapeHtml(s) + '"' + (r.status === s ? ' selected' : '') + '>' + escapeHtml(s) + '</option>'
+    ).join('');
+
+    return '<tr>' +
+      '<td class="font-mono tabular-nums" style="font-weight:700;white-space:nowrap">' + escapeHtml(r.id) + '</td>' +
+      '<td style="max-width:200px">' + escapeHtml(r.description) + '</td>' +
+      '<td style="white-space:nowrap">' + sevBadge + '</td>' +
+      '<td style="white-space:nowrap;font-weight:600;color:#334155">' + escapeHtml(r.squad) + '</td>' +
+      '<td style="white-space:nowrap">' +
+        '<select class="ritm-status-select" data-project-id="' + escapeHtml(project.id) + '" data-ritm-id="' + escapeHtml(r.id) + '" onchange="updateRitmStatus(this.dataset.projectId, this.dataset.ritmId, this.value)" title="Alterar status do chamado">' +
+          optionsHtml +
+        '</select>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+// Atualiza o status de um chamado Hypercare dentro do drawer
+function updateRitmStatus(projectId, ritmId, newStatus) {
+  const user = AppState.session?.user;
+  if (!user) return;
+
+  const project = AppState.projects.find(p => p.id === projectId);
+  if (!project) return;
+
+  // Validação de autoria: só o dono da frente ou gerente pode atualizar defeitos
+  if (user.role !== 'Gerente' && project.responsibleEmail?.toLowerCase() !== user.email?.toLowerCase()) {
+    showToast('Sem permissão para atualizar este chamado.', 'error');
+    renderDrawerHypercare(project);
+    return;
+  }
+
+  const ritm = (project.ritms || []).find(r => r.id === ritmId);
+  if (!ritm) return;
+
+  ritm.status = newStatus;
+  saveState();
+
+  addNotification('ritm_status',
+    user.name + ' alterou o chamado ' + ritm.id + ' (' + project.title + ') para ' + newStatus + '.',
+    project.id,
+    project.responsibleEmail
+  );
+
+  renderDrawerHypercare(project);
+  if (user.role === 'Gerente') {
+    renderManagerView();
   } else {
-    dateInput.disabled = false;
-    dateInput.required = true;
-    dateInput.classList.remove('opacity-50', 'bg-slate-200');
-    const defaultDate = new Date();
-    defaultDate.setDate(defaultDate.getDate() + 30);
-    dateInput.value = defaultDate.toISOString().split('T')[0];
+    renderCollaboratorView();
+  }
+  showToast('Chamado ' + ritm.id + ' atualizado para ' + newStatus + '.', 'success');
+}
+
+// ========================
+// COMENTÁRIOS
+// ========================
+
+function addComment() {
+  const input = document.getElementById('drawer-comment-input');
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) return;
+
+  const project = AppState.projects.find(p => p.id === AppState.drawerProjectId);
+  if (!project) return;
+
+  // Validação de autoria: só o responsável ou gerente pode comentar
+  const user = AppState.session?.user;
+  if (user?.role !== 'Gerente' && project.responsibleEmail?.toLowerCase() !== user?.email?.toLowerCase()) {
+    showToast('Sem permissão para comentar neste projeto.', 'error');
+    return;
+  }
+
+  if (!project.comments) project.comments = [];
+  project.comments.push({
+    author: user.name,
+    text: text,
+    timestamp: nowTimestamp()
+  });
+
+  input.value = '';
+  saveState();
+  renderDrawerComments(project);
+
+  addNotification('comment', user.name + ' comentou em ' + project.id + ': "' + text.substring(0, 60) + '"', project.id, project.responsibleEmail);
+}
+
+// ========================
+// MODAL: NOVA FRENTE / PROJETO
+// ========================
+
+function toggleCustomClientField() {
+  const client = document.getElementById('new-proj-client').value;
+  const group = document.getElementById('new-proj-client-custom-group');
+  if (client === 'Outro') {
+    group.classList.remove('hidden');
+  } else {
+    group.classList.add('hidden');
   }
 }
+
+function openNewProjectModal() {
+  const user = AppState.session?.user;
+  if (!user) return;
+
+  const form = document.querySelector('#modal-new-project form');
+  if (form) form.reset();
+  const progVal = document.getElementById('new-proj-progress-val');
+  if (progVal) progVal.textContent = '0%';
+  toggleCustomClientField();
+
+  // Se for colaborador, pre-preenche nome e email do responsável
+  if (user.role === 'Colaborador') {
+    const nameEl = document.getElementById('new-proj-responsible-name');
+    const emailEl = document.getElementById('new-proj-responsible-email');
+    if (nameEl) nameEl.value = user.name;
+    if (emailEl) emailEl.value = user.email;
+  }
+
+  // Atualiza datalists com valores existentes
+  populateFilterOptions();
+
+  document.getElementById('modal-new-project').classList.add('open');
+}
+
+function handleSaveNewProject(e) {
+  e.preventDefault();
+
+  const user = AppState.session?.user;
+  if (!user) return;
+
+  const client = document.getElementById('new-proj-client').value;
+  const clientCustom = document.getElementById('new-proj-client-custom').value.trim();
+  const program = document.getElementById('new-proj-program').value.trim();
+  const module = document.getElementById('new-proj-module').value.trim();
+  const title = document.getElementById('new-proj-title').value.trim();
+  const responsibleName = document.getElementById('new-proj-responsible-name').value.trim();
+  const responsibleEmail = document.getElementById('new-proj-responsible-email').value.trim();
+  const squad = document.getElementById('new-proj-squad').value.trim();
+  const baselineEnd = document.getElementById('new-proj-baseline-end').value;
+  const status = document.getElementById('new-proj-status').value;
+  const health = document.getElementById('new-proj-health').value;
+  const progress = Number(document.getElementById('new-proj-progress').value) || 0;
+  const description = document.getElementById('new-proj-description').value.trim();
+  const prereqs = document.getElementById('new-proj-prereqs')?.value.trim() || '';
+  const impact = document.getElementById('new-proj-impact')?.value.trim() || '';
+
+  if (client === 'Outro' && !clientCustom) {
+    showToast('Informe o nome do cliente.', 'error');
+    return;
+  }
+
+  const newProject = {
+    id: generateId('FRN'),
+    client,
+    clientCustom: client === 'Outro' ? clientCustom : '',
+    program,
+    module,
+    title,
+    responsibleName,
+    responsibleEmail,
+    squad,
+    baselineEnd,
+    newEnd: '',
+    status,
+    progress,
+    health,
+    description,
+    prereqs,
+    impact,
+    weeklyNotes: '',
+    subitems: [],
+    comments: [],
+    ritms: [],
+    createdAt: new Date().toISOString().split('T')[0],
+    createdBy: user.username || 'sistema'
+  };
+
+  AppState.projects.push(newProject);
+  saveState();
+
+  closeModal('modal-new-project');
+  e.target.reset();
+  document.getElementById('new-proj-progress-val').textContent = '0%';
+  document.getElementById('new-proj-client-custom-group').classList.add('hidden');
+
+  // Notifica gerência e responsável
+  addNotification('new_project',
+    user.name + ' cadastrou a frente "' + title + '" (' + program + ' / ' + module + ').',
+    newProject.id,
+    newProject.responsibleEmail
+  );
+
+  // Re-renderiza a view ativa
+  if (user.role === 'Gerente') {
+    renderManagerView();
+  } else {
+    renderCollaboratorView();
+  }
+
+  showToast('Frente "' + title + '" cadastrada com sucesso!', 'success');
+}
+
+// ========================
+// MODAL: ATUALIZAR STATUS
+// ========================
 
 function openUpdateStatusModal(projectId) {
   const project = AppState.projects.find(p => p.id === projectId);
   if (!project) return;
 
-  if (!validateProjectMutation(project)) {
-    return;
-  }
-
-  AppState.activeModalProjectId = projectId;
-  document.getElementById('modal-update-project-id').value = project.id;
-  document.getElementById('modal-update-project-title').innerText = `${project.id} - ${project.title} (${project.client || 'Geral'})`;
-
-  const range = document.getElementById('modal-update-range');
-  range.value = project.progress;
-  document.getElementById('modal-update-progress-label').innerText = project.progress + '%';
-
-  const radios = document.getElementsByName('modal-update-health');
-  radios.forEach(r => {
-    r.checked = (r.value === project.health);
-  });
-
-  document.getElementById('modal-update-notes').value = project.weeklyNotes || '';
-
-  // Configura campo de prazo e checkbox de indeterminado
-  const isIndefinite = (project.deadline === 'Indeterminado' || project.deadline?.toLowerCase() === 'indeterminado');
-  const deadlineCheck = document.getElementById('modal-update-indefinite');
-  const deadlineInput = document.getElementById('modal-update-deadline');
-  const deadlineMsgInput = document.getElementById('modal-update-deadline-msg');
-
-  if (deadlineCheck) deadlineCheck.checked = isIndefinite;
-  if (deadlineMsgInput) deadlineMsgInput.value = '';
-
-  if (deadlineInput) {
-    if (isIndefinite) {
-      deadlineInput.value = '';
-      deadlineInput.disabled = true;
-      deadlineInput.classList.add('opacity-50', 'bg-slate-200');
-    } else {
-      deadlineInput.disabled = false;
-      deadlineInput.classList.remove('opacity-50', 'bg-slate-200');
-      deadlineInput.value = project.deadline || '';
-    }
-  }
-
-  openModal('modal-update-status');
-}
-
-function handleSaveStatusUpdate(event) {
-  event.preventDefault();
-  const projectId = document.getElementById('modal-update-project-id').value;
-  const project = AppState.projects.find(p => p.id === projectId);
-  if (!project) return;
-
-  if (!validateProjectMutation(project)) {
-    closeModal('modal-update-status');
-    return;
-  }
-
-  const newProgress = parseInt(document.getElementById('modal-update-range').value, 10);
-  const newHealth = document.querySelector('input[name="modal-update-health"]:checked')?.value || 'green';
-  const newNotes = document.getElementById('modal-update-notes').value.trim();
-
-  // Tratamento do novo prazo
-  const isIndefinite = document.getElementById('modal-update-indefinite')?.checked;
-  const deadlineInput = document.getElementById('modal-update-deadline');
-  const newDeadline = isIndefinite ? 'Indeterminado' : (deadlineInput?.value || project.deadline);
-  const deadlineMsg = (document.getElementById('modal-update-deadline-msg')?.value || '').trim();
-
-  const oldDeadline = project.deadline;
-  const deadlineChanged = (oldDeadline !== newDeadline);
-
-  project.progress = newProgress;
-  project.health = newHealth;
-  project.weeklyNotes = newNotes;
-  project.deadline = newDeadline;
-
-  if (newProgress === 100) {
-    project.status = 'Concluído';
-  } else if (newProgress > 0) {
-    project.status = 'Em Andamento';
-  }
-
-  const user = AppState.session.user;
-  if (!project.comments) project.comments = [];
-
-  let deadlineCommentText = '';
-  if (deadlineChanged) {
-    deadlineCommentText = ` • Prazo alterado de "${formatDateBR(oldDeadline)}" para "${formatDateBR(newDeadline)}"`;
-    if (deadlineMsg) {
-      deadlineCommentText += ` (Motivo: "${deadlineMsg}")`;
-    }
-  }
-
-  project.comments.unshift({
-    author: user.name,
-    role: user.role,
-    date: getFormattedNow(),
-    text: `Status atualizado: ${newProgress}% (${translateHealth(newHealth)})${deadlineCommentText}. Nota: "${newNotes || 'Sem observações'}"`
-  });
-
-  // Gera notificacao para a central executiva do Allan
-  const changeTypeStr = deadlineChanged ? 'Prazo & Status' : 'Atualização de Status';
-  const changeDetails = `Progresso: ${newProgress}% (${translateHealth(newHealth)})${deadlineChanged ? ` • Prazo: ${formatDateBR(newDeadline)}` : ''}`;
-  const changeMsg = deadlineMsg || newNotes || 'Atualização realizada pelo responsável.';
-
-  addNotification({
-    id: 'notif_' + Date.now(),
-    author: user.name,
-    role: user.role,
-    client: project.client || 'Geral',
-    projectId: project.id,
-    projectTitle: project.title,
-    date: getFormattedNow(),
-    changeType: changeTypeStr,
-    details: changeDetails,
-    message: changeMsg,
-    isNew: true
-  });
-
-  saveProjectsData();
-  closeModal('modal-update-status');
-
-  if (user.role === 'Gerente') {
-    renderGerenteView();
-  } else {
-    renderColaboradorView();
-  }
-
-  showToast('Status e prazo atualizados com sucesso.', 'success');
-}
-
-// Exclusao de projetos inseridos incorretamente
-function handleDeleteProject(projectId) {
-  const project = AppState.projects.find(p => p.id === projectId);
-  if (!project) return;
-
+  // Anti-IDOR: colaborador só atualiza o que é dele
   const user = AppState.session?.user;
-  if (!user) return;
-
-  const isOwner = (project.responsibleEmail && project.responsibleEmail.trim().toLowerCase() === user.email.trim().toLowerCase()) ||
-                  (project.responsibleUsername && user.username && project.responsibleUsername.trim().toLowerCase() === user.username.trim().toLowerCase());
-  const isGerente = user.role === 'Gerente';
-
-  if (!isGerente && !isOwner) {
-    showToast('Você só pode remover projetos cadastrados sob sua responsabilidade.', 'error');
+  if (user?.role !== 'Gerente' && project.responsibleEmail?.toLowerCase() !== user?.email?.toLowerCase()) {
+    showToast('Sem permissão para atualizar este projeto.', 'error');
     return;
   }
 
-  const confirmMsg = `Deseja realmente remover o projeto "${project.id} - ${project.title}" do cliente ${project.client || 'Geral'}? Esta ação é definitiva.`;
-  if (!confirm(confirmMsg)) return;
+  document.getElementById('update-project-id').value = project.id;
+  document.getElementById('update-project-label').textContent = project.id + ' — ' + project.title;
+  document.getElementById('update-status').value = project.status;
+  document.getElementById('update-health').value = project.health;
+  document.getElementById('update-progress').value = project.progress;
+  document.getElementById('update-progress-val').textContent = project.progress + '%';
+  document.getElementById('update-new-end').value = project.newEnd || '';
+  document.getElementById('update-deadline-msg').value = '';
+  document.getElementById('update-weekly-notes').value = project.weeklyNotes || '';
 
-  AppState.projects = AppState.projects.filter(p => p.id !== projectId);
-  saveProjectsData();
+  document.getElementById('modal-update-status').classList.add('open');
+}
 
-  closeModal('modal-detail-project');
+function openUpdateFromDrawer() {
+  if (AppState.drawerProjectId) {
+    openUpdateStatusModal(AppState.drawerProjectId);
+  }
+}
+
+function handleSaveUpdateStatus(e) {
+  e.preventDefault();
+
+  const projectId = document.getElementById('update-project-id').value;
+  const project = AppState.projects.find(p => p.id === projectId);
+  if (!project) return;
+
+  // Validação de autoria novamente
+  const user = AppState.session?.user;
+  if (user?.role !== 'Gerente' && project.responsibleEmail?.toLowerCase() !== user?.email?.toLowerCase()) {
+    showToast('Sem permissão.', 'error');
+    return;
+  }
+
+  const oldProgress = project.progress;
+  const oldNewEnd = project.newEnd || '';
+  const newStatus = document.getElementById('update-status').value;
+  const newHealth = document.getElementById('update-health').value;
+  const newProgress = Number(document.getElementById('update-progress').value) || 0;
+  const newEnd = document.getElementById('update-new-end').value;
+  const deadlineMsg = document.getElementById('update-deadline-msg').value.trim();
+  const weeklyNotes = document.getElementById('update-weekly-notes').value.trim();
+
+  // Monta resumo das mudanças pra notificação
+  const changes = [];
+  if (project.status !== newStatus) changes.push('Status: ' + newStatus);
+  if (project.health !== newHealth) changes.push('Saúde: ' + newHealth.toUpperCase());
+  if (oldProgress !== newProgress) changes.push('Progresso: ' + oldProgress + '% → ' + newProgress + '%');
+  if (newEnd !== oldNewEnd) changes.push(newEnd ? ('Nova data: ' + formatDateBR(newEnd)) : 'Reprogramação removida');
+
+  // Aplica as mudanças
+  project.status = newStatus;
+  project.health = newHealth;
+  project.progress = newProgress;
+  project.newEnd = newEnd;
+  project.weeklyNotes = weeklyNotes;
+
+  // Se houve mudança de prazo com mensagem, registra como comentário automático
+  if (deadlineMsg && newEnd) {
+    if (!project.comments) project.comments = [];
+    project.comments.push({
+      author: user?.name || 'Sistema',
+      text: '[Mudança de prazo] Nova data: ' + formatDateBR(newEnd) + ' — ' + deadlineMsg,
+      timestamp: nowTimestamp()
+    });
+  }
+
+  saveState();
   closeModal('modal-update-status');
 
-  populateClientFilterOptions();
+  // Notifica
+  if (changes.length > 0) {
+    addNotification('status_change',
+      (user?.name || 'Alguém') + ' atualizou ' + project.id + ': ' + changes.join(' | '),
+      project.id,
+      project.responsibleEmail
+    );
+  }
 
-  if (user.role === 'Gerente') {
-    renderGerenteView();
+  // Re-renderiza
+  if (user?.role === 'Gerente') {
+    renderManagerView();
   } else {
-    renderColaboradorView();
+    renderCollaboratorView();
   }
 
-  showToast(`Projeto ${project.id} removido com sucesso.`, 'info');
+  // Se o drawer tava aberto nesse projeto, atualiza ele também
+  if (AppState.drawerProjectId === projectId) {
+    openDetailDrawer(projectId);
+  }
+
+  showToast('Status de "' + project.title + '" atualizado!', 'success');
 }
 
-// Alterna exibicao do campo de texto quando o cliente selecionado for "Outros"
-function toggleNewProjectClientCustom(val) {
-  const customField = document.getElementById('field-new-project-client-custom');
-  const customInput = document.getElementById('new-project-client-custom');
-  if (!customField) return;
-  if (val === 'Outros') {
-    customField.classList.remove('hidden');
-    if (customInput) customInput.focus();
-  } else {
-    customField.classList.add('hidden');
-    if (customInput) customInput.value = '';
-  }
-}
+// ========================
+// MODAL: NOVO CHAMADO (RITM / HYPERCARE)
+// ========================
 
-// Controle de prazo indeterminado no modal de criacao
-function toggleIndefiniteDeadline(isIndefinite) {
-  const dateInput = document.getElementById('new-project-deadline');
-  if (!dateInput) return;
-  if (isIndefinite) {
-    dateInput.value = '';
-    dateInput.disabled = true;
-    dateInput.required = false;
-    dateInput.classList.add('opacity-50', 'bg-slate-200');
-  } else {
-    dateInput.disabled = false;
-    dateInput.required = true;
-    dateInput.classList.remove('opacity-50', 'bg-slate-200');
-    const defaultDate = new Date();
-    defaultDate.setDate(defaultDate.getDate() + 30);
-    dateInput.value = defaultDate.toISOString().split('T')[0];
-  }
-}
+function openNewRitmModal(projectId) {
+  // Se chamado do drawer, usa o projeto do drawer
+  const pId = projectId || AppState.drawerProjectId;
+  if (!pId) { showToast('Selecione um projeto primeiro.', 'error'); return; }
 
-function openNewProjectModal() {
-  if (!AppState.session) return;
+  const project = AppState.projects.find(p => p.id === pId);
+  const user = AppState.session?.user;
+  if (!project || !user) return;
 
-  const indefiniteCheck = document.getElementById('new-project-indefinite');
-  if (indefiniteCheck) {
-    indefiniteCheck.checked = false;
-    toggleIndefiniteDeadline(false);
-  }
-
-  const defaultDate = new Date();
-  defaultDate.setDate(defaultDate.getDate() + 30);
-  const dateInput = document.getElementById('new-project-deadline');
-  if (dateInput) {
-    dateInput.value = defaultDate.toISOString().split('T')[0];
-  }
-
-  // Reseta selecao de cliente (Santander por padrao, Outros oculto)
-  const clientSelect = document.getElementById('new-project-client-select');
-  if (clientSelect) {
-    clientSelect.value = 'Santander';
-    toggleNewProjectClientCustom('Santander');
-  }
-
-  openModal('modal-new-project');
-}
-
-// Criar nova iniciativa: Cliente e selecionado aqui (Santander, Vivo, XP, Outros) e Responsavel e automatico
-function handleCreateProject(event) {
-  event.preventDefault();
-  const title = document.getElementById('new-project-title').value.trim();
-  
-  // Leitura do cliente com regra de "Outros"
-  const clientSelect = document.getElementById('new-project-client-select')?.value || 'Santander';
-  const clientCustom = document.getElementById('new-project-client-custom')?.value.trim();
-  const client = (clientSelect === 'Outros') ? (clientCustom || 'Outros') : clientSelect;
-
-  const category = document.getElementById('new-project-category').value.trim() || 'Geral';
-  const isIndefinite = document.getElementById('new-project-indefinite')?.checked;
-  const deadlineInput = document.getElementById('new-project-deadline');
-  const deadline = isIndefinite ? 'Indeterminado' : deadlineInput.value;
-  const health = document.getElementById('new-project-health').value;
-  const description = document.getElementById('new-project-desc').value.trim();
-
-  if (!isIndefinite && !deadline) {
-    showToast('Informe o prazo ou marque (Indeterminado).', 'warning');
+  // Trava de autoria: só o dono da frente ou gerente pode registrar defeitos
+  if (user.role !== 'Gerente' && project.responsibleEmail?.toLowerCase() !== user.email?.toLowerCase()) {
+    showToast('Sem permissão para registrar chamados nesta frente.', 'error');
     return;
   }
 
-  // O criador da iniciativa e automaticamente o responsavel (auto-alimentavel)
-  const respUser = AppState.session?.user || AppState.users[0];
-  const newProjId = 'PRJ-' + new Date().getFullYear() + '-' + String(AppState.projects.length + 1).padStart(3, '0');
+  const form = document.querySelector('#modal-new-ritm form');
+  if (form) form.reset();
 
-  const newProject = {
-    id: newProjId,
-    client: client,
-    title: title,
-    category: category,
-    description: description,
-    responsibleName: respUser.name,
-    responsibleUsername: respUser.username || '',
-    responsibleEmail: respUser.email,
-    status: 'Em Andamento',
-    progress: 0,
-    health: health,
-    deadline: deadline,
-    weeklyNotes: 'Iniciativa cadastrada no portfólio.',
-    comments: [
-      {
-        author: respUser.name,
-        role: respUser.role,
-        date: getFormattedNow(),
-        text: `Projeto cadastrado para o cliente ${client}.`
-      }
-    ]
+  document.getElementById('new-ritm-project-id').value = pId;
+  document.getElementById('modal-new-ritm').classList.add('open');
+}
+
+function handleSaveNewRitm(e) {
+  e.preventDefault();
+
+  const projectId = document.getElementById('new-ritm-project-id').value;
+  const project = AppState.projects.find(p => p.id === projectId);
+  const user = AppState.session?.user;
+  if (!project || !user) return;
+
+  // Trava de autoria novamente antes de gravar
+  if (user.role !== 'Gerente' && project.responsibleEmail?.toLowerCase() !== user.email?.toLowerCase()) {
+    showToast('Sem permissão para registrar chamados nesta frente.', 'error');
+    return;
+  }
+
+  const code = document.getElementById('new-ritm-code').value.trim();
+  const description = document.getElementById('new-ritm-description').value.trim();
+  const severity = document.getElementById('new-ritm-severity').value;
+  const status = document.getElementById('new-ritm-status').value;
+  const squad = document.getElementById('new-ritm-squad').value.trim();
+
+  const newRitm = {
+    id: code || generateId('RITM'),
+    description,
+    severity,
+    squad,
+    status,
+    identifiedAt: new Date().toISOString().split('T')[0],
+    createdBy: user.username || 'sistema'
   };
 
-  AppState.projects.unshift(newProject);
-  saveProjectsData();
-  closeModal('modal-new-project');
-  document.getElementById('form-new-project').reset();
-  toggleIndefiniteDeadline(false);
-  toggleNewProjectClientCustom('Santander');
+  if (!project.ritms) project.ritms = [];
+  project.ritms.push(newRitm);
+  saveState();
 
-  // Notificacao de novo projeto criado
-  addNotification({
-    id: 'notif_' + Date.now(),
-    author: respUser.name,
-    role: respUser.role,
-    client: client,
-    projectId: newProjId,
-    projectTitle: title,
-    date: getFormattedNow(),
-    changeType: 'Novo Projeto',
-    details: `Iniciativa cadastrada no portfólio para o cliente ${client} • Prazo: ${formatDateBR(deadline)}`,
-    message: description || 'Novo projeto cadastrado.',
-    isNew: true
-  });
+  closeModal('modal-new-ritm');
+  e.target.reset();
 
-  populateClientFilterOptions();
+  addNotification('new_ritm',
+    user.name + ' registrou chamado ' + newRitm.id + ' em ' + project.id + ' (' + severity + ').',
+    project.id,
+    project.responsibleEmail
+  );
 
-  if (AppState.session.user.role === 'Gerente') {
-    renderGerenteView();
-  } else {
-    renderColaboradorView();
+  // Atualiza drawer se estiver aberto
+  if (AppState.drawerProjectId === projectId) {
+    renderDrawerHypercare(project);
   }
 
-  showToast(`Projeto ${newProjId} cadastrado com sucesso (${client}).`, 'success');
+  // Re-renderiza view principal
+  if (user.role === 'Gerente') {
+    renderManagerView();
+  } else {
+    renderCollaboratorView();
+  }
+
+  showToast('Chamado ' + newRitm.id + ' registrado!', 'success');
 }
 
-function openProjectDetailModal(projectId) {
+// ========================
+// EXCLUIR PROJETO
+// ========================
+
+function deleteProject() {
+  const projectId = AppState.drawerProjectId;
+  if (!projectId) return;
+
   const project = AppState.projects.find(p => p.id === projectId);
   if (!project) return;
 
-  AppState.activeModalProjectId = projectId;
-
-  document.getElementById('modal-detail-id').innerText = project.id;
-  document.getElementById('modal-detail-title').innerText = project.title;
-
-  const clientBadge = document.getElementById('modal-detail-client-badge');
-  clientBadge.innerText = project.client || 'Geral';
-
-  document.getElementById('modal-detail-meta').innerText = `Cliente: ${project.client || 'Geral'} | Resp: ${project.responsibleName} (${project.responsibleEmail}) | Prazo: ${formatDateBR(project.deadline)}`;
-  document.getElementById('modal-detail-desc').innerText = project.description || 'Sem descrição cadastrada.';
-
-  const healthBadgeContainer = document.getElementById('modal-detail-health');
-  healthBadgeContainer.innerHTML = renderHealthBadgeHTML(project.health);
-
-  document.getElementById('modal-detail-prog-val').innerText = project.progress + '%';
-  const bar = document.getElementById('modal-detail-prog-bar');
-  bar.style.width = project.progress + '%';
-  bar.className = project.health === 'red' ? 'bg-rose-600 h-2' : (project.health === 'yellow' ? 'bg-amber-500 h-2' : 'bg-blue-700 h-2');
-
-  document.getElementById('modal-detail-notes').innerText = project.weeklyNotes ? `"${project.weeklyNotes}"` : 'Nenhuma observação declarada nesta semana.';
-
-  // Visibilidade do botao de exclusao no modal de detalhes
-  const deleteBtn = document.getElementById('modal-detail-delete-btn');
+  // Só gerente ou autor pode excluir
   const user = AppState.session?.user;
-  const isOwner = user && ((project.responsibleEmail && project.responsibleEmail.toLowerCase() === user.email.toLowerCase()) || (project.responsibleUsername && user.username && project.responsibleUsername.toLowerCase() === user.username.toLowerCase()));
-  if (user && (user.role === 'Gerente' || isOwner)) {
-    deleteBtn.classList.remove('hidden');
-  } else {
-    deleteBtn.classList.add('hidden');
-  }
-
-  renderCommentsList(project);
-  openModal('modal-detail-project');
-}
-
-function renderCommentsList(project) {
-  const container = document.getElementById('modal-comments-container');
-  container.innerHTML = '';
-
-  if (!project.comments || project.comments.length === 0) {
-    container.innerHTML = '<p class="text-xs text-slate-500 italic">Nenhum comentário registrado.</p>';
+  if (user?.role !== 'Gerente' && project.responsibleEmail?.toLowerCase() !== user?.email?.toLowerCase()) {
+    showToast('Sem permissão para excluir.', 'error');
     return;
   }
 
-  project.comments.forEach(c => {
-    const item = document.createElement('div');
-    item.className = 'p-2.5 bg-slate-50 rounded border border-slate-200 text-xs';
-
-    const isGerente = c.role === 'Gerente';
-    const badge = isGerente
-      ? '<span class="text-[10px] font-bold text-blue-800 bg-blue-100 px-1 py-0.2 rounded border border-blue-200">Gerente</span>'
-      : `<span class="text-[10px] font-medium text-slate-700 bg-slate-200 px-1 py-0.2 rounded">${sanitize(c.role || 'Equipe')}</span>`;
-
-    item.innerHTML = `
-      <div class="flex items-center justify-between mb-1 text-[11px]">
-        <div class="flex items-center gap-1.5 font-semibold text-slate-800">
-          <span>${sanitize(c.author)}</span>
-          ${badge}
-        </div>
-        <span class="font-mono text-slate-500">${sanitize(c.date)}</span>
-      </div>
-      <p class="text-slate-700 leading-relaxed">${sanitize(c.text)}</p>
-    `;
-    container.appendChild(item);
-  });
-}
-
-function handleAddComment(event) {
-  event.preventDefault();
-  const input = document.getElementById('modal-comment-input');
-  const text = input.value.trim();
-  if (!text || !AppState.activeModalProjectId) return;
-
-  const project = AppState.projects.find(p => p.id === AppState.activeModalProjectId);
-  if (!project) return;
-
-  const user = AppState.session.user;
-  if (!project.comments) project.comments = [];
-
-  project.comments.unshift({
-    author: user.name,
-    role: user.role,
-    date: getFormattedNow(),
-    text: text
-  });
-
-  saveProjectsData();
-  input.value = '';
-  renderCommentsList(project);
-  showToast('Comentário publicado.', 'info');
-}
-
-function toggleHomologationBar() {
-  const content = document.getElementById('homologation-content');
-  const arrow = document.getElementById('homologation-arrow');
-  if (content.classList.contains('hidden')) {
-    content.classList.remove('hidden');
-    arrow.style.transform = 'rotate(180deg)';
-  } else {
-    content.classList.add('hidden');
-    arrow.style.transform = 'rotate(0deg)';
+  if (!confirm('Tem certeza que deseja excluir a frente "' + project.title + '"? Esta ação não pode ser desfeita.')) {
+    return;
   }
+
+  AppState.projects = AppState.projects.filter(p => p.id !== projectId);
+  saveState();
+
+  closeDetailDrawer();
+
+  addNotification('delete', (user?.name || 'Alguém') + ' excluiu a frente "' + project.title + '".', null, project.responsibleEmail);
+
+  if (user?.role === 'Gerente') {
+    renderManagerView();
+  } else {
+    renderCollaboratorView();
+  }
+
+  showToast('Frente "' + project.title + '" excluída.', '');
 }
 
-function simulateUserSwitch(credential) {
-  const targetUser = AppState.users.find(u => 
-    (u.email && u.email.toLowerCase() === credential.toLowerCase()) ||
-    (u.username && u.username.toLowerCase() === credential.toLowerCase())
+// ========================
+// MODAIS — UTILITÁRIO
+// ========================
+
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) modal.classList.remove('open');
+}
+
+// ========================
+// NOTIFICAÇÕES
+// ========================
+
+function addNotification(type, message, projectId, targetEmail) {
+  let resolvedEmail = targetEmail || null;
+  if (!resolvedEmail && projectId) {
+    const p = AppState.projects.find(item => item.id === projectId);
+    if (p) resolvedEmail = p.responsibleEmail || null;
+  }
+
+  AppState.notifications.unshift({
+    id: generateId('notif'),
+    type,
+    message,
+    projectId: projectId || null,
+    targetEmail: resolvedEmail,
+    timestamp: nowTimestamp(),
+    read: false
+  });
+
+  // Mantém no máximo 50 notificações pra não inflar o localStorage
+  if (AppState.notifications.length > 50) {
+    AppState.notifications = AppState.notifications.slice(0, 50);
+  }
+
+  saveState();
+  renderNotifications();
+}
+
+function getVisibleNotifications() {
+  const user = AppState.session?.user;
+  if (!user) return [];
+  // Gerente vê tudo; colaborador vê apenas notificações ligadas às suas frentes ou à própria conta
+  if (user.role === 'Gerente') return AppState.notifications;
+
+  const myEmail = (user.email || '').toLowerCase();
+  const myProjectIds = new Set(
+    AppState.projects
+      .filter(p => (p.responsibleEmail || '').toLowerCase() === myEmail)
+      .map(p => p.id)
   );
-  if (targetUser) {
-    createSession(targetUser);
-  }
+
+  return AppState.notifications.filter(n =>
+    (n.targetEmail && n.targetEmail.toLowerCase() === myEmail) ||
+    (n.projectId && myProjectIds.has(n.projectId))
+  );
 }
 
-function resetDefaultDemoData() {
-  if (confirm('Restaurar dados originais de demonstração com clientes e cargos?')) {
-    AppState.projects = JSON.parse(JSON.stringify(INITIAL_PROJECTS));
-    AppState.users = JSON.parse(JSON.stringify(INITIAL_USERS));
-    AppState.notifications = JSON.parse(JSON.stringify(INITIAL_NOTIFICATIONS));
-    AppState.securityLogs = [];
-    saveProjectsData();
-    saveUsersData();
-    saveNotificationsData();
-    localStorage.removeItem(STORAGE_KEYS.SECURITY_LOGS);
-
-    if (AppState.session && AppState.session.user) {
-      applyActiveSession(AppState.session.user);
-    }
-    showToast('Dados restaurados com sucesso.', 'success');
-  }
+function toggleNotifications() {
+  const popover = document.getElementById('popover-notifications');
+  if (!popover) return;
+  popover.classList.toggle('open');
 }
 
-function renderSecurityBadge() {
-  const badge = document.getElementById('homologation-security-count');
-  if (badge) {
-    badge.innerText = `${AppState.securityLogs.length} eventos`;
-  }
-}
+function renderNotifications() {
+  const listEl = document.getElementById('notif-list');
+  const badgeEl = document.getElementById('notif-badge');
+  if (!listEl) return;
 
-function openSecurityAuditModal() {
-  const container = document.getElementById('modal-security-list');
-  container.innerHTML = '';
+  const visible = getVisibleNotifications();
+  const unreadCount = visible.filter(n => !n.read).length;
 
-  if (AppState.securityLogs.length === 0) {
-    container.innerHTML = '<p class="text-xs text-slate-500 italic p-4 text-center">Nenhum evento registrado.</p>';
-  } else {
-    AppState.securityLogs.forEach(log => {
-      const item = document.createElement('div');
-      item.className = 'p-2.5 bg-slate-50 rounded border border-slate-200 text-xs font-mono';
-      item.innerHTML = `
-        <div class="flex justify-between text-slate-500 text-[10px] mb-1">
-          <span class="font-bold text-rose-700">${sanitize(log.type)}</span>
-          <span>${sanitize(log.formattedDate)}</span>
-        </div>
-        <p class="text-slate-800">${sanitize(log.description)}</p>
-        <span class="text-[10px] text-slate-500 block mt-1">Origem: ${sanitize(log.userEmail)}</span>
-      `;
-      container.appendChild(item);
-    });
-  }
-
-  openModal('modal-security-audit');
-}
-
-function setupEventListeners() {
-  const tabLogin = document.getElementById('tab-btn-login');
-  const tabRegister = document.getElementById('tab-btn-register');
-
-  if (tabLogin && tabRegister) {
-    tabLogin.addEventListener('click', () => switchAuthTab('login'));
-    tabRegister.addEventListener('click', () => switchAuthTab('register'));
-  }
-
-  const regRoleSelect = document.getElementById('reg-role');
-  const govTokenField = document.getElementById('field-gov-token');
-
-  if (regRoleSelect && govTokenField) {
-    regRoleSelect.addEventListener('change', (e) => {
-      if (e.target.value === 'Gerente') {
-        govTokenField.classList.remove('hidden');
-      } else {
-        govTokenField.classList.add('hidden');
-      }
-    });
-  }
-
-  // Listener para selecao de cliente em "+ Novo Projeto"
-  const npClientSelect = document.getElementById('new-project-client-select');
-  if (npClientSelect) {
-    npClientSelect.addEventListener('change', (e) => toggleNewProjectClientCustom(e.target.value));
-  }
-
-  const modalRange = document.getElementById('modal-update-range');
-  if (modalRange) {
-    modalRange.addEventListener('input', (e) => {
-      document.getElementById('modal-update-progress-label').innerText = e.target.value + '%';
-    });
-  }
-}
-
-function switchAuthTab(tab) {
-  const loginBtn = document.getElementById('tab-btn-login');
-  const regBtn = document.getElementById('tab-btn-register');
-  const loginForm = document.getElementById('form-login');
-  const regForm = document.getElementById('form-register');
-
-  if (tab === 'login') {
-    loginBtn.className = 'py-1.5 text-xs font-semibold rounded bg-white text-blue-700 shadow-xs';
-    regBtn.className = 'py-1.5 text-xs font-medium rounded text-slate-600 hover:text-slate-900';
-    loginForm.classList.remove('hidden');
-    regForm.classList.add('hidden');
-  } else {
-    regBtn.className = 'py-1.5 text-xs font-semibold rounded bg-white text-blue-700 shadow-xs';
-    loginBtn.className = 'py-1.5 text-xs font-medium rounded text-slate-600 hover:text-slate-900';
-    regForm.classList.remove('hidden');
-    loginForm.classList.add('hidden');
-  }
-}
-
-function showScreen(screenId) {
-  document.getElementById('screen-login').classList.add('hidden');
-  document.getElementById('screen-app').classList.add('hidden');
-  document.getElementById('screen-app').classList.remove('flex');
-
-  const target = document.getElementById(screenId);
-  target.classList.remove('hidden');
-  if (screenId === 'screen-app') {
-    target.classList.add('flex');
-  }
-}
-
-function openModal(id) {
-  const modal = document.getElementById(id);
-  if (modal) modal.classList.remove('hidden');
-}
-
-function closeModal(id) {
-  const modal = document.getElementById(id);
-  if (modal) modal.classList.add('hidden');
-}
-
-function populateResponsibleOptions() {
-  const filterSelect = document.getElementById('table-filter-colab');
-
-  if (filterSelect) {
-    filterSelect.innerHTML = '<option value="all">Todos os Responsáveis</option>';
-    AppState.users.forEach(u => {
-      const opt = document.createElement('option');
-      opt.value = u.email;
-      opt.textContent = `${u.name} (${u.role})`;
-      filterSelect.appendChild(opt);
-    });
-  }
-
-  const debugSelect = document.getElementById('debug-switch-user');
-  if (debugSelect) {
-    debugSelect.innerHTML = '';
-    AppState.users.forEach(u => {
-      const opt = document.createElement('option');
-      opt.value = u.email;
-      opt.textContent = `${u.name} [${u.role}]`;
-      debugSelect.appendChild(opt);
-    });
-    if (AppState.session && AppState.session.user) {
-      debugSelect.value = AppState.session.user.email;
+  if (badgeEl) {
+    badgeEl.textContent = unreadCount;
+    if (unreadCount > 0) {
+      badgeEl.classList.remove('hidden');
+    } else {
+      badgeEl.classList.add('hidden');
     }
   }
+
+  if (visible.length === 0) {
+    listEl.innerHTML = '<div class="notif-empty">Nenhuma notificação por aqui.</div>';
+    return;
+  }
+
+  listEl.innerHTML = visible.slice(0, 30).map(n =>
+    '<div class="notif-item' + (n.read ? '' : ' unread') + '">' +
+      '<div>' + escapeHtml(n.message) + '</div>' +
+      '<div class="notif-item-time">' + escapeHtml(n.timestamp) + '</div>' +
+    '</div>'
+  ).join('');
 }
 
-function populateClientFilterOptions() {
-  const filterClient = document.getElementById('table-filter-client');
-  if (!filterClient) return;
-
-  const currentSelection = filterClient.value || 'all';
-
-  const clientsSet = new Set();
-  AppState.projects.forEach(p => {
-    if (p.client && p.client.trim()) clientsSet.add(p.client.trim());
+function markAllRead() {
+  const visibleIds = new Set(getVisibleNotifications().map(n => n.id));
+  AppState.notifications.forEach(n => {
+    if (visibleIds.has(n.id)) n.read = true;
   });
-
-  filterClient.innerHTML = '<option value="all">Todos os Clientes</option>';
-  Array.from(clientsSet).sort().forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c;
-    opt.textContent = c;
-    filterClient.appendChild(opt);
-  });
-
-  filterClient.value = currentSelection;
+  saveState();
+  renderNotifications();
+  showToast('Todas as notificações foram marcadas como lidas.', 'success');
 }
 
-function renderClientBadgeHTML(client) {
-  const c = client || 'Geral';
-  const cLower = c.toLowerCase();
+// ========================
+// SEGURANÇA: RBAC + DOM GUARD
+// ========================
 
-  let colorClasses = 'bg-slate-100 text-slate-800 border-slate-300';
-  if (cLower.includes('santander')) {
-    colorClasses = 'bg-rose-50 text-rose-800 border-rose-200';
-  } else if (cLower.includes('xp')) {
-    colorClasses = 'bg-amber-50 text-amber-900 border-amber-300';
-  } else if (cLower.includes('vivo')) {
-    colorClasses = 'bg-purple-50 text-purple-800 border-purple-200';
-  } else if (cLower.includes('allan')) {
-    colorClasses = 'bg-blue-50 text-blue-800 border-blue-200';
+// Trava de segurança: colaborador não passa daqui nem mexendo no inspecionar elemento
+function checkAccessPermission(requiredRole) {
+  const user = AppState.session?.user;
+  if (!user) return false;
+  if (requiredRole === 'Gerente' && user.role !== 'Gerente') {
+    return false;
   }
-
-  return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold border ${colorClasses}">${sanitize(c)}</span>`;
+  return true;
 }
 
-function renderHealthBadgeHTML(health) {
-  if (health === 'green') {
-    return `<span class="health-badge green"><span class="health-badge-dot"></span>No Prazo</span>`;
-  } else if (health === 'yellow') {
-    return `<span class="health-badge yellow"><span class="health-badge-dot"></span>Em Atenção</span>`;
-  } else {
-    return `<span class="health-badge red"><span class="health-badge-dot"></span>Crítico</span>`;
-  }
-}
+// Vigia manipulação de DOM: se alguém tentar forçar visão de gerente ou barra de homologação, fecha e limpa na hora
+let domGuardObserver = null;
+function initDomGuard() {
+  if (domGuardObserver) return;
+  const gerenteView = document.getElementById('view-gerente');
+  const homoBar = document.getElementById('homologation-bar');
+  if (!gerenteView) return;
 
-function translateHealth(h) {
-  if (h === 'green') return 'No Prazo';
-  if (h === 'yellow') return 'Em Atenção';
-  return 'Crítico';
-}
-
-function formatDateBR(dateStr) {
-  if (!dateStr) return '-';
-  if (dateStr === 'Indeterminado' || dateStr.toLowerCase() === 'indeterminado') {
-    return 'Indeterminado';
-  }
-  const parts = dateStr.split('-');
-  if (parts.length === 3) {
-    return `${parts[2]}/${parts[1]}/${parts[0]}`;
-  }
-  return dateStr;
-}
-
-function getFormattedNow() {
-  const d = new Date();
-  const pad = n => String(n).padStart(2, '0');
-  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function showToast(message, type = 'info') {
-  const container = document.getElementById('toast-container');
-  if (!container) return;
-
-  const toast = document.createElement('div');
-
-  let borderColor = 'border-slate-300';
-  let badgeText = 'INFO';
-  let badgeColor = 'bg-slate-100 text-slate-700';
-
-  if (type === 'success') {
-    borderColor = 'border-emerald-500';
-    badgeText = 'SUCESSO';
-    badgeColor = 'bg-emerald-100 text-emerald-800';
-  } else if (type === 'warning') {
-    borderColor = 'border-amber-500';
-    badgeText = 'AVISO';
-    badgeColor = 'bg-amber-100 text-amber-800';
-  } else if (type === 'error') {
-    borderColor = 'border-rose-600';
-    badgeText = 'ERRO';
-    badgeColor = 'bg-rose-100 text-rose-800';
-  }
-
-  toast.className = `p-3 bg-white rounded border-l-4 ${borderColor} shadow-md text-xs pointer-events-auto transition duration-200 transform translate-y-1 opacity-0`;
-  toast.innerHTML = `
-    <div class="flex items-center justify-between gap-2 mb-1">
-      <span class="text-[10px] font-bold px-1.5 py-0.2 rounded uppercase ${badgeColor}">${badgeText}</span>
-      <span class="text-[10px] text-slate-500 font-mono">${getFormattedNow().split(' ')[1]}</span>
-    </div>
-    <div class="text-slate-800 font-medium">${sanitize(message)}</div>
-  `;
-
-  container.appendChild(toast);
-
-  setTimeout(() => {
-    toast.classList.remove('translate-y-1', 'opacity-0');
-  }, 10);
-
-  setTimeout(() => {
-    toast.classList.add('opacity-0');
-    setTimeout(() => toast.remove(), 250);
-  }, 4000);
-}
-
-function setupSecurityActivityTrackers() {
-  ['click', 'keydown', 'mousemove'].forEach(evt => {
-    window.addEventListener(evt, () => updateSessionActivity(), { passive: true });
-  });
-
-  // Garante que usuario sem perfil de gerente nao acesse a visao restrita
-  const observer = new MutationObserver(() => {
-    if (AppState.session && AppState.session.user && AppState.session.user.role !== 'Gerente') {
-      const gerenteView = document.getElementById('view-gerente');
-      if (gerenteView && !gerenteView.classList.contains('hidden')) {
+  domGuardObserver = new MutationObserver(() => {
+    const user = AppState.session?.user;
+    if (user && user.role !== 'Gerente') {
+      if (!gerenteView.classList.contains('hidden') || gerenteView.style.display === 'block') {
         gerenteView.classList.add('hidden');
-        recordSecurityIncident('INVASAO_DOM_F12', 'Tentativa de visualização do painel restrito.');
-        showToast('Acesso negado: sem permissão para o painel de Gerente.', 'error');
-        renderColaboradorView();
+        gerenteView.style.display = '';
+        const tbody = document.getElementById('tbody-principal');
+        if (tbody) tbody.innerHTML = '';
+        console.warn('[DomGuard] Tentativa de acesso não autorizado ao painel de gerente bloqueada.');
+      }
+    }
+    if (homoBar && AppState.session?.canSimulate !== true) {
+      if (!homoBar.classList.contains('hidden') || homoBar.style.display === 'flex' || homoBar.style.display === 'block') {
+        homoBar.classList.add('hidden');
+        homoBar.style.display = '';
       }
     }
   });
 
-  const appView = document.getElementById('screen-app');
-  if (appView) {
-    observer.observe(appView, { attributes: true, subtree: true, attributeFilter: ['class', 'style'] });
+  domGuardObserver.observe(gerenteView, { attributes: true, attributeFilter: ['class', 'style'] });
+  if (homoBar) {
+    domGuardObserver.observe(homoBar, { attributes: true, attributeFilter: ['class', 'style'] });
   }
 }
 
-document.addEventListener('DOMContentLoaded', initApplication);
+// ========================
+// BARRA DE HOMOLOGAÇÃO (DEBUG — TROCA DE USUÁRIO)
+// ========================
+
+function populateDebugSwitchUser() {
+  const select = document.getElementById('debug-switch-user');
+  if (!select) return;
+
+  select.innerHTML = AppState.users.map(u =>
+    '<option value="' + escapeHtml(u.id) + '"' +
+    (AppState.session?.user?.id === u.id ? ' selected' : '') +
+    '>' + escapeHtml(u.name) + ' (' + escapeHtml(u.role) + ')</option>'
+  ).join('');
+}
+
+function switchDebugUser() {
+  // Só permite simular se a sessão original autenticada for de Gerente
+  if (AppState.session?.canSimulate !== true) {
+    showToast('Simulação disponível apenas para gerentes autenticados.', 'error');
+    return;
+  }
+
+  const select = document.getElementById('debug-switch-user');
+  if (!select) return;
+
+  const userId = select.value;
+  const user = AppState.users.find(u => u.id === userId);
+  if (!user) return;
+
+  AppState.session = {
+    user: { ...user },
+    canSimulate: true
+  };
+  saveState();
+  showApp();
+  showToast('Simulando como: ' + user.name + ' (' + user.role + ')', 'success');
+}
+
+// ========================
+// INICIALIZAÇÃO
+// ========================
+
+function initApp() {
+  // Garante fallback caso alguma logo estática tenha falhado antes do app.js carregar
+  document.querySelectorAll('#client-filter-buttons img').forEach(img => {
+    if (img.complete && img.naturalWidth === 0) handleClientLogoError(img);
+  });
+
+  loadState();
+
+  // Se tem sessão salva e o usuário ainda existe, vai direto pro app
+  if (AppState.session?.user) {
+    const userStillExists = AppState.users.some(u => u.id === AppState.session.user.id);
+    if (userStillExists) {
+      // Recarrega dados atualizados do usuário (caso tenha sido editado)
+      const freshUser = AppState.users.find(u => u.id === AppState.session.user.id);
+      const canSim = AppState.session.canSimulate === true || freshUser.role === 'Gerente';
+      AppState.session = { user: { ...freshUser }, canSimulate: canSim };
+      showApp();
+      return;
+    }
+    // Se o usuário sumiu do localStorage, desloga
+    AppState.session = null;
+    localStorage.removeItem(STORAGE_KEY_SESSION);
+  }
+
+  // Sem sessão: mostra login
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('app-shell').classList.add('hidden');
+}
+
+// Fecha popover de notificações ao clicar fora
+document.addEventListener('click', (e) => {
+  const popover = document.getElementById('popover-notifications');
+  const btn = document.getElementById('btn-toggle-notifs');
+  if (popover && popover.classList.contains('open') && !popover.contains(e.target) && !(btn && btn.contains(e.target))) {
+    popover.classList.remove('open');
+  }
+});
+
+// Fecha drawer com ESC
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeDetailDrawer();
+    closeModal('modal-new-project');
+    closeModal('modal-update-status');
+    closeModal('modal-new-ritm');
+    const popover = document.getElementById('popover-notifications');
+    if (popover) popover.classList.remove('open');
+  }
+});
+
+// Boot
+document.addEventListener('DOMContentLoaded', initApp);
