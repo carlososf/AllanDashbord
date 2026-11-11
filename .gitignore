@@ -1,0 +1,21 @@
+# IDEs e Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Variáveis de ambiente e segredos locais
+.env
+.env.*
+!.env.example
+
+# Sistema Operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Arquivos temporários e logs
+*.log
+*.tmp
+*.bak
+~$*

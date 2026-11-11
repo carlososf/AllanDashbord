@@ -1,94 +1,47 @@
-# Projetos Allan Santos - Portal Corporativo de Governança e Portfólio de Projetos
+# Projetos Allan Santos — Portal de Governança & PMO
 
-Sistema corporativo de governança, acompanhamento e monitoramento de iniciativas divididas por clientes (Santander, Vivo, XP, Allan, Outros), auto-alimentado pelos próprios responsáveis, com dashboard executivo circular, central de notificações posicionada no cantinho, controle de acesso por cargo (RBAC) e gestão de prazos flexíveis/indeterminados.
-
----
-
-## 📋 Sumário
-1. [Visão Geral](#-visão-geral)
-2. [Central de Notificações no Cantinho](#-central-de-notificações-no-cantinho)
-3. [Cadastro Auto-alimentável (Sem necessidade de escolher responsável)](#-cadastro-auto-alimentável)
-4. [Alteração de Prazo & Status com Mensagem Opcional](#-alteração-de-prazo--status-com-mensagem-opcional)
-5. [Dashboard Executivo Redondo do Gerente](#-dashboard-executivo-redondo-do-gerente)
-6. [Credenciais Oficiais de Demonstração](#-credenciais-oficiais-de-demonstração)
-7. [Como Executar o Projeto](#-como-executar-o-projeto)
+Portal corporativo multi-cliente (**XP**, **Santander**, **Vivo** e **Outros**) com **Cronograma WBS em 3 Níveis** (*Sistema/Módulo → Macroatividade → Microatividade*), **Gráfico de Gantt interativo com Linha de Corte** e gestão de **Hypercare & Validações**, com cadastro e atualização 100% nativos na interface web.
 
 ---
 
-## 🎯 Visão Geral
+## 📁 Estrutura de Diretórios
 
-O **Projetos Allan Santos** é uma plataforma corporativa limpa, direta e sem poluição visual.
-
-### Ajustes Visuais e Governança:
-- **Topo Direto**: Cabeçalho com o logo e estritamente o título **Projetos Allan Santos** (sem breadcrumbs nem referências a diretorias).
-- **Terminologia Corporativa**: Termo "Saúde" substituído integralmente por **Status** em todo o sistema.
-- **Identificação do Usuário**: Exibe nome, cargo e cliente de atuação na barra superior e nos cartões de projetos.
-
----
-
-## 🔔 Central de Notificações no Cantinho
-
-Exclusivo no painel do Gerente (**Allan Santos**):
-- **Localização Discreta**: Posicionado no canto superior direito do painel (ao lado do botão `+ Novo Projeto`), evitando cobrir a tela ou empurrar a tabela de projetos para baixo.
-- **Badge Dinâmico**: O botão exibe a contagem de novidades (ex: `2 novas`).
-- **Popover Executivo**: Ao clicar em **Notificações**, abre-se uma janela suspensa compacta no cantinho com:
-  - Quem alterou (nome, cargo e cliente).
-  - Qual iniciativa foi atualizada (com link para detalhes).
-  - O que mudou (novo prazo, novo percentual ou novo status).
-  - Mensagem opcional deixada pelo colaborador.
-  - Opção de limpar notificações já revisadas.
-
----
-
-## 🚀 Cadastro Auto-alimentável (Cliente na Iniciativa & Sem Responsável Manual)
-
-- **Cadastro de Usuário Simplificado**:
-  - Na tela de login / criação de acesso, **não é solicitado cliente ou local de atuação**. O usuário informa apenas Nome, Usuário, E-mail, Cargo e Senha.
-- **Seleção de Cliente ao Criar a Iniciativa**:
-  - No modal **"+ Novo Projeto"**, o usuário seleciona o Cliente entre as opções rápidas: **Santander**, **Vivo**, **XP**, **Allan** ou **Outros**.
-  - Ao selecionar **Outros**, um campo de texto é exibido para digitar o nome do cliente/local personalizado.
-- **Responsável Automático**:
-  - O projeto é **atribuído automaticamente** ao usuário autenticado que está cadastrando a iniciativa (auto-alimentável, sem necessidade de selecionar responsável em lista).
+```text
+/ (raiz)
+├── index.html                  # Ponto de entrada principal (compatível com GitHub Pages, Vercel e uso local)
+├── deploy.bat                  # Script auxiliar de publicação via Git
+├── .gitignore                  # Regras de exclusão (.vscode/, .env, .DS_Store, temporários)
+├── README.md                   # Documentação técnica consolidada
+└── src/
+    ├── assets/
+    │   └── images/
+    │       ├── mslogo.png
+    │       ├── logoxp.webp
+    │       ├── logosantander.webp
+    │       └── logovivo.webp
+    ├── css/
+    │   └── styles.css          # Folha de estilo enterprise + regras @media print
+    └── js/
+        ├── config.js           # Constantes, chaves, mapeamento de logos, status, AppState e utilitários
+        ├── store.js            # Camada DataStore (abstrai localStorage hoje para futura API/Banco)
+        ├── auth.js             # Autenticação SHA-256, gerente único, RBAC e proteção do DOM
+        ├── gantt.js            # Renderização do Gantt, linha vermelha de referência, zoom e tooltip
+        └── app.js              # Controlador principal: filtros, árvore WBS, abas, modais e notificações
+```
 
 ---
 
-## ⏱️ Alteração de Prazo & Status com Mensagem Opcional
+## ⚙️ Arquitetura Modular & Evolução para API
 
-No modal **"Atualizar Status"**, os responsáveis têm controle completo:
-- **Percentual Concluído**: Slider interativo de 0% a 100%.
-- **Status do Projeto**: No Prazo (verde), Em Atenção (amarelo) ou Crítico (vermelho).
-- **Alteração de Prazo**: Possibilidade de atualizar a data limite ou marcar como **(Indeterminado)**.
-- **Mensagem / Justificativa Opcional de Prazo**: Campo para registrar o motivo da mudança (ex: novas demandas alinhadas com o cliente).
-- **Histórico Automático**: Toda alteração é registrada com data/hora nos comentários do projeto e enviada diretamente para a Central de Notificações no cantinho do Allan.
-
----
-
-## ⭕ Dashboard Executivo Redondo do Gerente
-
-A aba exclusiva do Gerente conta com um **Dashboard Executivo Circular**:
-- **Gráfico Donut SVG**: Proporção visual de projetos No Prazo (verde), Em Atenção (amarelo) e Críticos (vermelho) com o total consolidado no centro.
-- **Legenda Interativa**: Mostra a contagem e porcentagem de cada fatia, permitindo clicar para filtrar a tabela automaticamente.
-- **Gauge Circular de Taxa Média**: Medidor redondo de entrega agregada de todo o portfólio e relação de clientes com iniciativas ativas.
-
----
-
-## 🔑 Credenciais Oficiais de Demonstração
-
-| Usuário | E-mail | Cargo | Cliente | Senha | Projeto Vinculado |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| `AllanSantos` | `allan.santos@empresa.com` | Gerente | Allan | `12345` | Visão Consolidada & Notificações no Cantinho |
-| `CarlosSouza` | `carlos.souza@empresa.com` | Trainee | Allan | `54321` | **Dashboard de Projetos** *(Prazo: Indeterminado, 75%)* |
-| `BeatrizP` | `beatriz.prugno@santander.com.br` | Senior | Santander | `Bia123` | **PMO riscos TI Santander** *(Prazo: Indeterminado, 85%)*<br>Desc: *Cobranças diarias de demandas, entre ela: Runtime, CNJP, APIGEE* |
-
-* **Chave de Governança para Novos Gerentes**: `GOV2026`
+- **`src/js/config.js`**: centraliza chaves de armazenamento, `API_CONFIG`, tabela `STATUS_UI_MAP`, mapeamento `CLIENT_LOGOS`, estado global `AppState` e utilitários de data/sanitização XSS (`escapeHtml`).
+- **`src/js/store.js`**: expõe o adaptador `DataStore` (`readJson`, `writeJson`, `saveAll`, `loadAll`, `clearSession`, `normalizeUsersList` e `createSeedData`). Toda leitura e escrita em `localStorage` fica isolada neste arquivo para facilitar a troca futura por chamadas HTTP (`fetch`) para uma API REST ou banco de dados.
+- **`src/js/auth.js`**: implementa validação de senha com SHA-256 com salt (`sha256Hex`), regra de **gerente único** (`usr-001`, bloqueando criação de novos gerentes no cadastro), isolamento de dados por colaborador (`getAccessibleActivities`, `getAccessibleRitms`, `getAccessibleExecNotes`) e montagem dinâmica de UI administrativa apenas quando o gerente está autenticado.
+- **`src/js/gantt.js`**: desenha a timeline dia a dia com coluna WBS fixa, sombreamento de fins de semana, zoom (`Compacto`, `Normal`, `Expandido`), linha vermelha vertical da data de referência e tooltip flutuante.
+- **`src/js/app.js`**: coordena inicialização (`initApp`), navegação em 4 abas (**Visão Geral**, **Cronograma WBS**, **Gantt** e **Hypercare & Validações**), árvore em 3 níveis, modais nativos e notificações.
 
 ---
 
 ## 💻 Como Executar
 
-1. Abra a pasta do projeto:
-   ```text
-   C:\Users\carlos.cesar.de.oli1\Downloads\Web Projetos Allan Santos\
-   ```
-2. Dê um duplo clique no arquivo **`index.html`** para abrir no Google Chrome, Microsoft Edge ou Firefox.
-3. Não requer Node.js, compilação ou instalação de dependências.
+1. **Uso local:** abra `index.html` diretamente no navegador moderno ou sirva a pasta raiz via servidor HTTP estático.
+2. **Deploy estático (Vercel / GitHub Pages):** mantenha `index.html` na raiz do repositório e publique os arquivos de `src/` junto ao projeto.
