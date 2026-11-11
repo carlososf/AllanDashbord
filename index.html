@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Projetos Allan Santos — Portal de Governança e Acompanhamento de Projetos</title>
+  <title>Projetos Allan Santos — Portal de Governança | PD Gente — XP</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="src/css/styles.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
@@ -16,12 +16,17 @@
        ============================================================ -->
   <div id="login-screen">
     <div class="login-card">
-      <img src="src/assets/images/mslogo.png" alt="Logo" class="login-logo"
-           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-      <div class="login-logo-fallback" style="display:none;">AS</div>
+      <div class="login-logos">
+        <img src="mslogo.png" alt="Consultoria" class="login-logo"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="login-logo-fallback" style="display:none;">AS</div>
+        <div class="login-logo-divider"></div>
+        <img src="logoxp.webp" alt="XP Inc." class="login-xp-logo"
+             onerror="this.style.display='none';">
+      </div>
 
       <h1 class="login-title">Projetos Allan Santos</h1>
-      <p class="login-subtitle">Portal de Governança e Acompanhamento de Projetos</p>
+      <p class="login-subtitle">Portal de Governança | PD Gente — XP</p>
 
       <!-- Formulário de Login -->
       <form id="login-form" onsubmit="handleLogin(event)">
@@ -75,13 +80,16 @@
     <!-- HEADER INSTITUCIONAL -->
     <header id="app-header">
       <div class="header-left">
-        <img src="src/assets/images/mslogo.png" alt="Logo" class="header-logo"
+        <img src="mslogo.png" alt="Consultoria" class="header-logo"
              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
         <div class="header-logo-fallback" style="display:none;">AS</div>
         <div class="header-divider"></div>
+        <img src="logoxp.webp" alt="XP Inc." class="header-xp-logo"
+             onerror="this.style.display='none';">
+        <div class="header-divider"></div>
         <div class="header-brand">
           <span class="header-title">Projetos Allan Santos</span>
-          <span class="header-subtitle">Portal de Governança e Acompanhamento de Projetos</span>
+          <span class="header-subtitle">Portal de Governança | PD Gente — XP</span>
         </div>
       </div>
 
@@ -119,7 +127,7 @@
 
       <!-- Cabeçalho de Impressão (visível apenas em window.print) -->
       <div class="print-only-header">
-        <span id="print-meta-title"><strong>Relatório Executivo — Projetos Allan Santos</strong></span>
+        <span id="print-meta-title"><strong>Relatório Executivo — Projetos Allan Santos | PD Gente — XP</strong></span>
         <span id="print-meta-date"></span>
       </div>
 
@@ -127,7 +135,7 @@
       <section class="operational-toolbar no-print">
         <div class="toolbar-left">
           <div class="toolbar-title" id="workspace-greeting">Painel de Governança e Linha do Tempo</div>
-          <div class="toolbar-context" id="workspace-context">Multi-cliente (XP, Santander, Vivo) — Árvore em 3 Níveis &amp; Hypercare</div>
+          <div class="toolbar-context" id="workspace-context">Programa PD Gente (XP) — Cronograma WBS em 3 Níveis &amp; Hypercare</div>
         </div>
         <div class="toolbar-actions">
           <div class="ref-date-control">
@@ -161,25 +169,6 @@
       <!-- BARRA DE FILTROS & CONTROLES DE ÁRVORE -->
       <section class="filter-panel no-print" id="filters-panel">
         <div class="filter-row">
-          <div class="filter-group">
-            <span class="filter-label">Cliente</span>
-            <div class="client-filter-group" id="client-filter-buttons">
-              <button type="button" class="client-filter-btn active" onclick="setFilterClient('all')">Todos</button>
-              <button type="button" class="client-filter-btn" onclick="setFilterClient('XP')">
-                <img src="src/assets/images/logoxp.webp" alt="XP" data-fallback-src="src/assets/images/xp.png" data-client-class="xp" onerror="if(window.handleClientLogoError)handleClientLogoError(this)"> XP
-              </button>
-              <button type="button" class="client-filter-btn" onclick="setFilterClient('Santander')">
-                <img src="src/assets/images/logosantander.webp" alt="Santander" data-fallback-src="src/assets/images/santander.png" data-client-class="santander" onerror="if(window.handleClientLogoError)handleClientLogoError(this)"> Santander
-              </button>
-              <button type="button" class="client-filter-btn" onclick="setFilterClient('Vivo')">
-                <img src="src/assets/images/logovivo.webp" alt="Vivo" data-fallback-src="src/assets/images/vivo.png" data-client-class="vivo" onerror="if(window.handleClientLogoError)handleClientLogoError(this)"> Vivo
-              </button>
-              <button type="button" class="client-filter-btn" onclick="setFilterClient('Outro')">
-                <span class="client-dot outro"></span> Outro
-              </button>
-            </div>
-          </div>
-
           <div class="filter-group">
             <label class="filter-label" for="filter-system">Sistema / Módulo</label>
             <select class="filter-select" id="filter-system" onchange="applyFilters()">
@@ -266,11 +255,6 @@
 
         <div id="overview-content">
           <div class="overview-section-title">
-            <span>Resumo por Cliente</span>
-          </div>
-          <div class="summary-grid" id="overview-clients-grid"></div>
-
-          <div class="overview-section-title">
             <span>Resumo por Sistema / Módulo</span>
           </div>
           <div class="summary-grid" id="overview-systems-grid"></div>
@@ -293,7 +277,6 @@
               <thead>
                 <tr>
                   <th>Estrutura</th>
-                  <th>Cliente</th>
                   <th>Responsável</th>
                   <th>Início</th>
                   <th>Fim Planejado</th>
@@ -353,7 +336,7 @@
                 <thead>
                   <tr>
                     <th>Código</th>
-                    <th>Cliente &amp; Módulo</th>
+                    <th>Sistema / Módulo</th>
                     <th>Descrição &amp; Ação Tomada</th>
                     <th>Severidade</th>
                     <th>Squad / Resp.</th>
@@ -402,38 +385,23 @@
       <form id="activity-form" onsubmit="handleSaveActivity(event)">
         <input type="hidden" id="act-edit-id">
         <div class="modal-body">
-          <div class="form-section-title">1. Cliente e Estrutura</div>
+          <div class="form-section-title">1. Estrutura WBS (PD Gente — XP)</div>
           <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="act-client">Cliente</label>
-              <select class="form-select" id="act-client" onchange="toggleActCustomClient()">
-                <option value="XP">XP</option>
-                <option value="Santander">Santander</option>
-                <option value="Vivo">Vivo</option>
-                <option value="Outro">Outro</option>
-              </select>
-            </div>
             <div class="form-group">
               <label class="form-label" for="act-system">Nível 1 — Sistema / Módulo</label>
               <input type="text" class="form-input" id="act-system" list="dl-systems" placeholder="Ex: SAP Recruiting" required>
             </div>
-          </div>
-
-          <div class="form-group hidden" id="act-client-custom-group">
-            <label class="form-label" for="act-client-custom">Nome do Cliente</label>
-            <input type="text" class="form-input" id="act-client-custom" placeholder="Informe o cliente">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="act-macro">Nível 2 — Macroatividade</label>
-            <input type="text" class="form-input" id="act-macro" list="dl-macros" placeholder="Ex: A Atualização dos perfis TO BE" required>
+            <div class="form-group">
+              <label class="form-label" for="act-macro">Nível 2 — Macroatividade</label>
+              <input type="text" class="form-input" id="act-macro" list="dl-macros" placeholder="Ex: A - Convivência &amp; Migração de Dados" required>
+            </div>
           </div>
 
           <div class="form-section-title">2. Entrega (Microatividade) &amp; Responsável</div>
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" for="act-code">ID (opcional)</label>
-              <input type="text" class="form-input font-mono" id="act-code" placeholder="Auto (ex: AT-001)">
+              <input type="text" class="form-input font-mono" id="act-code" placeholder="Auto (ex: XP-010)">
             </div>
             <div class="form-group">
               <label class="form-label" for="act-title">Nível 3 — Microatividade</label>
@@ -519,34 +487,22 @@
       <form id="ritm-form" onsubmit="handleSaveRitm(event)">
         <input type="hidden" id="ritm-edit-uid">
         <div class="modal-body">
-          <div class="form-row">
+          <div class="form-row-3">
             <div class="form-group">
-              <label class="form-label" for="ritm-client">Cliente</label>
-              <select class="form-select" id="ritm-client">
-                <option value="XP">XP</option>
-                <option value="Santander">Santander</option>
-                <option value="Vivo">Vivo</option>
-                <option value="Outro">Outro</option>
-              </select>
+              <label class="form-label" for="ritm-code">Código (RITM)</label>
+              <input type="text" class="form-input font-mono" id="ritm-code" placeholder="Ex: RITM18437224" required>
             </div>
             <div class="form-group">
               <label class="form-label" for="ritm-system">Sistema / Módulo</label>
-              <input type="text" class="form-input" id="ritm-system" list="dl-systems" placeholder="Ex: SAP Admissão" required>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="ritm-code">Código do Chamado (RITM)</label>
-              <input type="text" class="form-input font-mono" id="ritm-code" placeholder="Ex: RITM0001234" required>
+              <input type="text" class="form-input" id="ritm-system" list="dl-systems" placeholder="Ex: Admissão Digital" required>
             </div>
             <div class="form-group">
               <label class="form-label" for="ritm-severity">Severidade</label>
               <select class="form-select" id="ritm-severity">
-                <option value="Alta P2">Alta P2</option>
-                <option value="Média P3" selected>Média P3</option>
-                <option value="Baixa P4">Baixa P4</option>
-                <option value="Melhoria P5">Melhoria P5</option>
+                <option value="Alta (P2)">Alta (P2)</option>
+                <option value="Média (P3)" selected>Média (P3)</option>
+                <option value="Baixa (P4)">Baixa (P4)</option>
+                <option value="Melhoria (P5)">Melhoria (P5)</option>
               </select>
             </div>
           </div>
@@ -602,11 +558,7 @@
   <!-- TOAST CONTAINER -->
   <div id="toast-container" class="toast-container"></div>
 
-  <!-- Módulos carregados em ordem explícita para compatibilidade com file:// e Vercel/GitHub Pages -->
-  <script src="src/js/config.js"></script>
-  <script src="src/js/store.js"></script>
-  <script src="src/js/auth.js"></script>
-  <script src="src/js/gantt.js"></script>
-  <script src="src/js/app.js"></script>
+  <!-- Script único na raiz (compatível com file:// e deploy estático) -->
+  <script src="app.js"></script>
 </body>
 </html>

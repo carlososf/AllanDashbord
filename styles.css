@@ -60,11 +60,32 @@ body {
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
 }
 
+.login-logos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 0 auto 18px;
+}
+
 .login-logo {
-  width: 136px;
+  width: 120px;
   height: auto;
   display: block;
-  margin: 0 auto 18px;
+}
+
+.login-logo-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.login-xp-logo {
+  height: 28px;
+  width: auto;
+  display: block;
+  border-radius: 4px;
 }
 
 .login-logo-fallback {
@@ -78,7 +99,7 @@ body {
   color: #FFF;
   font-weight: 800;
   font-size: 18px;
-  margin: 0 auto 18px;
+  margin: 0;
 }
 
 .login-title {
@@ -275,6 +296,7 @@ body {
 
 .header-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .header-logo { height: 26px; width: auto; flex-shrink: 0; }
+.header-xp-logo { height: 20px; width: auto; flex-shrink: 0; border-radius: 3px; }
 .header-logo-fallback {
   width: 28px;
   height: 28px;
@@ -516,33 +538,6 @@ body {
 }
 .filter-select:focus, .filter-input:focus { outline: none; border-color: var(--primary); }
 
-.client-filter-group { display: flex; gap: 4px; flex-wrap: wrap; }
-.client-filter-btn {
-  height: 30px;
-  padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: #FFF;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-muted);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-family: inherit;
-  transition: all 0.15s;
-}
-.client-filter-btn:hover { border-color: var(--border-strong); background: #F8FAFC; }
-.client-filter-btn.active { border-color: var(--primary); background: #EFF6FF; color: var(--primary); }
-.client-filter-btn img {
-  height: 15px;
-  max-width: 56px;
-  width: auto;
-  object-fit: contain;
-  border-radius: 2px;
-}
-
 .tree-controls-row {
   margin-top: 10px;
   padding-top: 10px;
@@ -572,43 +567,6 @@ body {
 }
 
 .tree-action-buttons { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-
-/* ========================
-   BADGE DE CLIENTE (h-5 = 20px)
-   ======================== */
-.badge-client {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  height: 20px;
-  padding: 0 7px 0 4px;
-  background: #F8FAFC;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  font-size: 10.5px;
-  font-weight: 600;
-  color: var(--text-body);
-  white-space: nowrap;
-}
-.badge-client img {
-  height: 14px;
-  max-width: 52px;
-  width: auto;
-  object-fit: contain;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-.client-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  display: inline-block;
-}
-.client-dot.xp { background: #0F172A; }
-.client-dot.santander { background: #DC2626; }
-.client-dot.vivo { background: #7E22CE; }
-.client-dot.outro { background: #64748B; }
 
 /* ========================
    VISÃO GERAL: KPIs & CARDS
@@ -659,7 +617,7 @@ body {
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
   gap: 12px;
   margin-bottom: 18px;
 }
