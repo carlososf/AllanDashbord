@@ -18,7 +18,9 @@ const STORAGE_KEY_EXEC_NOTES = 'gov_portal_xp_real_v1_notes';
 const STORAGE_KEY_NOTIFS = 'gov_portal_xp_real_v1_notifs';
 const STORAGE_KEY_SESSION = 'as_gov_session_v3';
 const STORAGE_KEY_DEMO_SEED = 'gov_portal_xp_real_v1';
-const MANAGER_KEY = 'GOV2026'; // Chave corporativa pra cadastro de perfil Gerente
+const MANAGER_USER_ID = 'usr-001'; // Gerente único permitido no sistema
+const AUTH_SALT = 'asgov-2026';
+let managerSimulationUnlocked = false;
 
 const STATUS_ORDER = [
   'Concluído',
@@ -35,14 +37,14 @@ const ZOOM_DAY_WIDTH = {
   expanded: 48
 };
 
-// Usuário base de gestão (demais colaboradores se cadastram na tela inicial)
+// Usuário único de gestão (cadastro público cria exclusivamente perfil Colaborador)
 const DEFAULT_USERS = [
   {
     id: 'usr-001',
     name: 'Allan Santos',
     email: 'allan.santos@empresa.com',
     username: 'AllanSantos',
-    password: '12345',
+    passHash: '8b2b7473fd9dcbb135da011ab65487d300f89bdd3e234eadcbd8fc89c35f2782',
     role: 'Gerente'
   }
 ];
@@ -90,6 +92,96 @@ function escapeHtml(str) {
 
 function generateId(prefix) {
   return prefix + '-' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+}
+
+// Hash SHA-256 puro em JS para não expor senhas em texto puro no código nem no localStorage
+function sha256Hex(input) {
+  const str = String(input || '');
+  const bytes = typeof TextEncoder !== 'undefined'
+    ? Array.from(new TextEncoder().encode(str))
+    : Array.from(unescape(encodeURIComponent(str)), ch => ch.charCodeAt(0));
+
+  const K = [
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+  ];
+  const H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
+
+  const bitLen = bytes.length * 8;
+  bytes.push(0x80);
+  while ((bytes.length % 64) !== 56) bytes.push(0);
+  const hi = Math.floor(bitLen / 4294967296);
+  const lo = bitLen >>> 0;
+  for (let i = 24; i >= 0; i -= 8) bytes.push((hi >>> i) & 0xff);
+  for (let i = 24; i >= 0; i -= 8) bytes.push((lo >>> i) & 0xff);
+
+  const rotr = (x, n) => (x >>> n) | (x << (32 - n));
+  const W = new Array(64);
+
+  for (let offset = 0; offset < bytes.length; offset += 64) {
+    for (let i = 0; i < 16; i++) {
+      W[i] = (
+        (bytes[offset + i * 4] << 24) |
+        (bytes[offset + i * 4 + 1] << 16) |
+        (bytes[offset + i * 4 + 2] << 8) |
+        bytes[offset + i * 4 + 3]
+      ) >>> 0;
+    }
+    for (let i = 16; i < 64; i++) {
+      const s0 = rotr(W[i - 15], 7) ^ rotr(W[i - 15], 18) ^ (W[i - 15] >>> 3);
+      const s1 = rotr(W[i - 2], 17) ^ rotr(W[i - 2], 19) ^ (W[i - 2] >>> 10);
+      W[i] = (W[i - 16] + s0 + W[i - 7] + s1) >>> 0;
+    }
+
+    let a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+    for (let i = 0; i < 64; i++) {
+      const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+      const ch = (e & f) ^ (~e & g);
+      const temp1 = (h + S1 + ch + K[i] + W[i]) >>> 0;
+      const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+      const maj = (a & b) ^ (a & c) ^ (b & c);
+      const temp2 = (S0 + maj) >>> 0;
+      h = g; g = f; f = e;
+      e = (d + temp1) >>> 0;
+      d = c; c = b; b = a;
+      a = (temp1 + temp2) >>> 0;
+    }
+    H[0] = (H[0] + a) >>> 0; H[1] = (H[1] + b) >>> 0;
+    H[2] = (H[2] + c) >>> 0; H[3] = (H[3] + d) >>> 0;
+    H[4] = (H[4] + e) >>> 0; H[5] = (H[5] + f) >>> 0;
+    H[6] = (H[6] + g) >>> 0; H[7] = (H[7] + h) >>> 0;
+  }
+
+  return H.map(w => (w >>> 0).toString(16).padStart(8, '0')).join('');
+}
+
+function hashPassword(password, userId) {
+  return sha256Hex(AUTH_SALT + ':' + String(userId || '') + ':' + String(password || ''));
+}
+
+function sanitizeSessionUser(user) {
+  if (!user) return null;
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    username: user.username,
+    role: user.id === MANAGER_USER_ID ? 'Gerente' : 'Colaborador'
+  };
+}
+
+function isManagerUser(user) {
+  return !!(user && user.id === MANAGER_USER_ID && user.role === 'Gerente');
+}
+
+function isSimulationAllowed() {
+  return managerSimulationUnlocked === true && AppState.session?.canSimulate === true;
 }
 
 // Retorna data local de hoje em YYYY-MM-DD sem susto de fuso
@@ -172,13 +264,25 @@ function showToast(message, type) {
 
 function saveState() {
   try {
-    localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(AppState.users));
+    const safeUsers = AppState.users.map(u => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      username: u.username,
+      passHash: u.passHash || '',
+      role: u.id === MANAGER_USER_ID ? 'Gerente' : 'Colaborador'
+    }));
+    localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(safeUsers));
     localStorage.setItem(STORAGE_KEY_ACTIVITIES, JSON.stringify(AppState.activities));
     localStorage.setItem(STORAGE_KEY_RITMS, JSON.stringify(AppState.ritms));
     localStorage.setItem(STORAGE_KEY_EXEC_NOTES, JSON.stringify(AppState.execNotes));
     localStorage.setItem(STORAGE_KEY_NOTIFS, JSON.stringify(AppState.notifications));
-    if (AppState.session) {
-      localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(AppState.session));
+    if (AppState.session && AppState.session.user) {
+      const safeSession = {
+        user: sanitizeSessionUser(AppState.session.user),
+        canSimulate: isSimulationAllowed()
+      };
+      localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(safeSession));
     }
   } catch (e) {
     console.warn('[saveState] Falha ao gravar no localStorage:', e);
@@ -444,6 +548,72 @@ function purgeLegacyDemoStorage() {
   ].forEach(k => localStorage.removeItem(k));
 }
 
+function normalizeUsersList(rawUsers) {
+  let changed = false;
+  const source = Array.isArray(rawUsers) && rawUsers.length > 0
+    ? rawUsers
+    : DEFAULT_USERS.map(u => ({ ...u }));
+  if (!Array.isArray(rawUsers) || rawUsers.length === 0) changed = true;
+
+  const byId = new Map();
+  const baseManager = { ...DEFAULT_USERS[0] };
+
+  source.forEach(raw => {
+    if (!raw || !raw.id) { changed = true; return; }
+    const copy = { ...raw };
+
+    // Migra qualquer senha antiga em texto puro para SHA-256 com salt
+    if (typeof copy.password === 'string' && copy.password.length > 0) {
+      if (!copy.passHash) copy.passHash = hashPassword(copy.password, copy.id);
+      delete copy.password;
+      changed = true;
+    } else if ('password' in copy) {
+      delete copy.password;
+      changed = true;
+    }
+
+    // Regra de gerente único: apenas Allan Santos (usr-001) pode manter perfil Gerente
+    if (copy.id === MANAGER_USER_ID) {
+      if (copy.name !== baseManager.name || copy.email !== baseManager.email || copy.username !== baseManager.username || copy.role !== 'Gerente') {
+        changed = true;
+      }
+      copy.name = baseManager.name;
+      copy.email = baseManager.email;
+      copy.username = baseManager.username;
+      copy.role = 'Gerente';
+      if (!copy.passHash) {
+        copy.passHash = baseManager.passHash;
+        changed = true;
+      }
+    } else if (copy.role !== 'Colaborador') {
+      copy.role = 'Colaborador';
+      changed = true;
+    }
+
+    if (!byId.has(copy.id)) byId.set(copy.id, copy);
+  });
+
+  if (!byId.has(MANAGER_USER_ID)) {
+    byId.set(MANAGER_USER_ID, baseManager);
+    changed = true;
+  }
+
+  const managerUser = byId.get(MANAGER_USER_ID);
+  const list = [managerUser];
+  byId.forEach((u, id) => {
+    if (id === MANAGER_USER_ID) return;
+    const uName = (u.username || '').toLowerCase();
+    const uMail = (u.email || '').toLowerCase();
+    if (uName === managerUser.username.toLowerCase() || uMail === managerUser.email.toLowerCase()) {
+      changed = true;
+      return;
+    }
+    list.push(u);
+  });
+
+  return { users: list, changed };
+}
+
 function loadState() {
   try {
     // Limpa caches antigos de demonstração para carregar os dados reais sem precisar limpar o navegador manualmente
@@ -456,7 +626,9 @@ function loadState() {
     const notifs = localStorage.getItem(STORAGE_KEY_NOTIFS);
     const session = localStorage.getItem(STORAGE_KEY_SESSION);
 
-    AppState.users = users ? JSON.parse(users) : [...DEFAULT_USERS];
+    const parsedUsers = users ? JSON.parse(users) : null;
+    const norm = normalizeUsersList(parsedUsers);
+    AppState.users = norm.users;
     AppState.activities = (activities ? JSON.parse(activities) : [])
       .filter(a => !/^act-demo-/.test(a.id || '') && !/^AT-00[1-7]$/i.test(a.code || ''));
     AppState.ritms = (ritms ? JSON.parse(ritms) : [])
@@ -466,6 +638,8 @@ function loadState() {
     AppState.notifications = notifs ? JSON.parse(notifs) : [];
     AppState.session = session ? JSON.parse(session) : null;
 
+    const sessionHadSecret = !!(AppState.session?.user && ('password' in AppState.session.user || 'passHash' in AppState.session.user));
+
     if (!localStorage.getItem(STORAGE_KEY_DEMO_SEED)) {
       const seed = createTestSeedData();
       if (AppState.activities.length === 0) AppState.activities = seed.activities;
@@ -473,11 +647,13 @@ function loadState() {
       if (AppState.execNotes.length === 0) AppState.execNotes = seed.execNotes;
       localStorage.setItem(STORAGE_KEY_DEMO_SEED, '1');
       saveState();
+    } else if (norm.changed || sessionHadSecret) {
+      saveState();
     }
   } catch (e) {
     console.warn('[loadState] Erro ao carregar estado, carregando massa inicial XP:', e);
     const seed = createTestSeedData();
-    AppState.users = [...DEFAULT_USERS];
+    AppState.users = DEFAULT_USERS.map(u => ({ ...u }));
     AppState.activities = seed.activities;
     AppState.ritms = seed.ritms;
     AppState.execNotes = seed.execNotes;
@@ -501,15 +677,18 @@ function handleLogin(e) {
     u.email.toLowerCase() === credential.toLowerCase()
   );
 
-  if (!user || user.password !== password) {
+  const inputHash = user ? hashPassword(password, user.id) : '';
+  if (!user || user.passHash !== inputHash) {
     errorEl.textContent = 'Usuário ou senha inválidos.';
     errorEl.classList.remove('hidden');
     return;
   }
 
+  const isMgr = isManagerUser(user);
+  managerSimulationUnlocked = isMgr;
   AppState.session = {
-    user: { ...user },
-    canSimulate: user.role === 'Gerente'
+    user: sanitizeSessionUser(user),
+    canSimulate: isMgr
   };
   saveState();
   showApp();
@@ -522,8 +701,6 @@ function handleRegister(e) {
   const email = document.getElementById('register-email').value.trim();
   const username = document.getElementById('register-username').value.trim();
   const password = document.getElementById('register-password').value;
-  const role = document.getElementById('register-role').value;
-  const managerKey = document.getElementById('register-manager-key').value.trim();
   const errorEl = document.getElementById('register-error');
 
   if (AppState.users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
@@ -537,22 +714,23 @@ function handleRegister(e) {
     return;
   }
 
-  // Trava de segurança: perfil Gerente só entra com chave corporativa GOV2026
-  if (role === 'Gerente' && managerKey !== MANAGER_KEY) {
-    errorEl.textContent = 'Chave corporativa inválida para perfil Gerente.';
-    errorEl.classList.remove('hidden');
-    return;
-  }
-
+  // Gerente único: novos cadastros recebem exclusivamente perfil Colaborador
+  const role = 'Colaborador';
+  const id = generateId('usr');
   const newUser = {
-    id: generateId('usr'),
-    name, email, username, password, role
+    id,
+    name,
+    email,
+    username,
+    passHash: hashPassword(password, id),
+    role
   };
 
   AppState.users.push(newUser);
+  managerSimulationUnlocked = false;
   AppState.session = {
-    user: { ...newUser },
-    canSimulate: role === 'Gerente'
+    user: sanitizeSessionUser(newUser),
+    canSimulate: false
   };
   saveState();
 
@@ -583,24 +761,17 @@ function toggleRegisterForm() {
   document.getElementById('register-error').classList.add('hidden');
 }
 
-function toggleManagerKeyField() {
-  const role = document.getElementById('register-role').value;
-  const group = document.getElementById('register-manager-key-group');
-  if (role === 'Gerente') {
-    group.classList.remove('hidden');
-  } else {
-    group.classList.add('hidden');
-  }
-}
-
 function logout() {
+  managerSimulationUnlocked = false;
   AppState.session = null;
   localStorage.removeItem(STORAGE_KEY_SESSION);
   closeModal('modal-activity');
   closeModal('modal-ritm');
   hideGanttTooltip();
   document.getElementById('popover-notifications')?.classList.remove('open');
-  document.getElementById('homologation-bar')?.classList.add('hidden');
+  syncHomologationBar();
+  const execSlot = document.getElementById('exec-note-form-slot');
+  if (execSlot) execSlot.innerHTML = '';
   document.getElementById('app-shell').classList.add('hidden');
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('login-form').reset();
@@ -611,12 +782,12 @@ function logout() {
 // SEGURANÇA: RBAC & ESCOPO DE DADOS
 // ========================
 
-// Trava de segurança: separa Gerente (visão consolidada) de Colaborador (só suas frentes)
+// Trava de segurança: separa Gerente único (visão consolidada) de Colaborador (só suas frentes)
 function checkAccessPermission(requiredRole) {
   const user = AppState.session?.user;
   if (!user) return false;
-  if (requiredRole === 'Gerente' && user.role !== 'Gerente') {
-    return false;
+  if (requiredRole === 'Gerente') {
+    return isManagerUser(user);
   }
   return true;
 }
@@ -624,7 +795,7 @@ function checkAccessPermission(requiredRole) {
 function isOwnerOrManager(ownerEmail) {
   const user = AppState.session?.user;
   if (!user) return false;
-  if (user.role === 'Gerente') return true;
+  if (isManagerUser(user)) return true;
   return (ownerEmail || '').toLowerCase() === (user.email || '').toLowerCase();
 }
 
@@ -632,7 +803,7 @@ function isOwnerOrManager(ownerEmail) {
 function getAccessibleActivities() {
   const user = AppState.session?.user;
   if (!user) return [];
-  if (user.role === 'Gerente') return AppState.activities;
+  if (isManagerUser(user)) return AppState.activities;
   const myEmail = (user.email || '').toLowerCase();
   return AppState.activities.filter(a => (a.responsibleEmail || '').toLowerCase() === myEmail);
 }
@@ -640,7 +811,7 @@ function getAccessibleActivities() {
 function getAccessibleRitms() {
   const user = AppState.session?.user;
   if (!user) return [];
-  if (user.role === 'Gerente') return AppState.ritms;
+  if (isManagerUser(user)) return AppState.ritms;
   const myEmail = (user.email || '').toLowerCase();
   const mySystems = new Set(
     getAccessibleActivities().map(a => a.client + '::' + a.system.toLowerCase())
@@ -654,7 +825,7 @@ function getAccessibleRitms() {
 function getAccessibleExecNotes() {
   const user = AppState.session?.user;
   if (!user) return [];
-  if (user.role === 'Gerente') return AppState.execNotes;
+  if (isManagerUser(user)) return AppState.execNotes;
   const myActs = getAccessibleActivities();
   const myClients = new Set(myActs.map(a => a.client));
   const mySystems = new Set(myActs.map(a => a.system.toLowerCase()));
@@ -664,32 +835,26 @@ function getAccessibleExecNotes() {
   );
 }
 
-// Vigia manipulação manual do DOM no navegador caso colaborador tente abrir painel restrito
+// Vigia manipulação manual do DOM no navegador caso usuário tente injetar painel restrito
 let domGuardObserver = null;
 function initDomGuard() {
   if (domGuardObserver) return;
-  const execForm = document.getElementById('exec-note-form');
-  const homoBar = document.getElementById('homologation-bar');
+  const execSlot = document.getElementById('exec-note-form-slot');
 
   domGuardObserver = new MutationObserver(() => {
-    const user = AppState.session?.user;
-    if (execForm && (!user || user.role !== 'Gerente')) {
-      if (!execForm.classList.contains('hidden') || execForm.style.display === 'block') {
-        execForm.classList.add('hidden');
-        execForm.style.display = '';
-        console.warn('[DomGuard] Bloqueada tentativa de exibir formulário executivo para colaborador.');
-      }
+    const execForm = document.getElementById('exec-note-form');
+    if (execForm && !checkAccessPermission('Gerente')) {
+      execForm.remove();
+      console.warn('[DomGuard] Bloqueada tentativa de exibir formulário executivo para colaborador.');
     }
-    if (homoBar && AppState.session?.canSimulate !== true) {
-      if (!homoBar.classList.contains('hidden') || homoBar.style.display === 'flex' || homoBar.style.display === 'block') {
-        homoBar.classList.add('hidden');
-        homoBar.style.display = '';
-      }
+    const homoBar = document.getElementById('homologation-bar');
+    if (homoBar && !isSimulationAllowed()) {
+      homoBar.remove();
     }
   });
 
-  if (execForm) domGuardObserver.observe(execForm, { attributes: true, attributeFilter: ['class', 'style'] });
-  if (homoBar) domGuardObserver.observe(homoBar, { attributes: true, attributeFilter: ['class', 'style'] });
+  if (execSlot) domGuardObserver.observe(execSlot, { childList: true, subtree: true });
+  if (document.body) domGuardObserver.observe(document.body, { childList: true });
 }
 
 // ========================
@@ -785,11 +950,9 @@ function showApp() {
   document.getElementById('header-username').textContent = user.name;
   document.getElementById('header-role').textContent = user.role;
 
-  const isManager = user.role === 'Gerente';
+  const isManager = isManagerUser(user);
   const greetingEl = document.getElementById('workspace-greeting');
   const contextEl = document.getElementById('workspace-context');
-  const execForm = document.getElementById('exec-note-form');
-  const homoBar = document.getElementById('homologation-bar');
 
   if (greetingEl) {
     greetingEl.textContent = isManager
@@ -801,18 +964,9 @@ function showApp() {
       ? 'Visão consolidada multi-cliente (XP, Santander, Vivo) — Árvore em 3 Níveis & Hypercare'
       : 'Exibindo apenas atividades e chamados sob sua responsabilidade (' + user.email + ')';
   }
-  if (execForm) {
-    if (isManager) execForm.classList.remove('hidden');
-    else execForm.classList.add('hidden');
-  }
-  if (homoBar) {
-    if (AppState.session?.canSimulate === true) {
-      homoBar.classList.remove('hidden');
-      populateDebugSwitchUser();
-    } else {
-      homoBar.classList.add('hidden');
-    }
-  }
+
+  renderExecNoteFormSlot();
+  syncHomologationBar();
 
   // Data de referência inicial = hoje
   if (!AppState.referenceDate) {
@@ -1738,7 +1892,43 @@ function hideGanttTooltip() {
 
 function renderHypercareTab() {
   renderRitmsTable();
+  renderExecNoteFormSlot();
   renderExecNotes();
+}
+
+// Monta o formulário de cobrança executiva apenas quando o Gerente está autenticado
+function renderExecNoteFormSlot() {
+  const slot = document.getElementById('exec-note-form-slot');
+  if (!slot) return;
+  if (!checkAccessPermission('Gerente')) {
+    slot.innerHTML = '';
+    return;
+  }
+  if (slot.querySelector('#exec-note-form')) return;
+  slot.innerHTML =
+    '<form id="exec-note-form" class="no-print" onsubmit="handleSaveExecNote(event)" style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #E2E8F0;">' +
+      '<div class="form-row">' +
+        '<div class="form-group">' +
+          '<label class="form-label" for="exec-note-client">Cliente</label>' +
+          '<select class="form-select" id="exec-note-client">' +
+            '<option value="Geral">Todos / Geral</option>' +
+            '<option value="XP">XP</option>' +
+            '<option value="Santander">Santander</option>' +
+            '<option value="Vivo">Vivo</option>' +
+            '<option value="Outro">Outro</option>' +
+          '</select>' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label class="form-label" for="exec-note-system">Sistema / Módulo</label>' +
+          '<input type="text" class="form-input" id="exec-note-system" list="dl-systems" placeholder="Ex: SAP Recruiting">' +
+        '</div>' +
+      '</div>' +
+      '<div class="form-group">' +
+        '<label class="form-label" for="exec-note-text">Cobrança / Observação Executiva</label>' +
+        '<textarea class="form-textarea" id="exec-note-text" rows="2" placeholder="Registre cobranças de entrega, validações ou encaminhamentos..." required></textarea>' +
+      '</div>' +
+      '<button type="submit" class="btn-primary btn-sm">Registrar Cobrança</button>' +
+    '</form>';
 }
 
 function renderRitmsTable() {
@@ -1922,7 +2112,7 @@ function openNewActivityModal() {
 
   const nameEl = document.getElementById('act-resp-name');
   const emailEl = document.getElementById('act-resp-email');
-  if (user.role === 'Colaborador') {
+  if (!isManagerUser(user)) {
     nameEl.value = user.name;
     emailEl.value = user.email;
     nameEl.readOnly = true;
@@ -1964,8 +2154,8 @@ function openEditActivityModal(actId) {
   const emailEl = document.getElementById('act-resp-email');
   nameEl.value = act.responsibleName;
   emailEl.value = act.responsibleEmail;
-  nameEl.readOnly = (user.role !== 'Gerente');
-  emailEl.readOnly = (user.role !== 'Gerente');
+  nameEl.readOnly = !isManagerUser(user);
+  emailEl.readOnly = !isManagerUser(user);
 
   document.getElementById('act-start').value = act.startDate;
   document.getElementById('act-end').value = act.endDate;
@@ -2014,7 +2204,7 @@ function handleSaveActivity(e) {
   }
 
   // Colaborador só grava atividade em seu próprio nome/e-mail
-  if (user.role !== 'Gerente') {
+  if (!isManagerUser(user)) {
     responsibleName = user.name;
     responsibleEmail = user.email;
   }
@@ -2120,7 +2310,7 @@ function openNewRitmModal() {
 
   const emailEl = document.getElementById('ritm-owner-email');
   emailEl.value = user.email;
-  emailEl.readOnly = (user.role !== 'Gerente');
+  emailEl.readOnly = !isManagerUser(user);
 
   document.getElementById('modal-ritm').classList.add('open');
 }
@@ -2151,7 +2341,7 @@ function openEditRitmModal(uid) {
 
   const emailEl = document.getElementById('ritm-owner-email');
   emailEl.value = ritm.ownerEmail || '';
-  emailEl.readOnly = (user.role !== 'Gerente');
+  emailEl.readOnly = !isManagerUser(user);
 
   document.getElementById('modal-ritm').classList.add('open');
 }
@@ -2170,7 +2360,7 @@ function handleSaveRitm(e) {
   const squad = document.getElementById('ritm-squad').value.trim();
   const status = document.getElementById('ritm-status').value;
   const action = document.getElementById('ritm-action').value.trim();
-  const ownerEmail = user.role === 'Gerente'
+  const ownerEmail = isManagerUser(user)
     ? document.getElementById('ritm-owner-email').value.trim()
     : user.email;
 
@@ -2272,7 +2462,7 @@ function addNotification(type, message, refId, targetEmail) {
 function getVisibleNotifications() {
   const user = AppState.session?.user;
   if (!user) return [];
-  if (user.role === 'Gerente') return AppState.notifications;
+  if (isManagerUser(user)) return AppState.notifications;
 
   const myEmail = (user.email || '').toLowerCase();
   return AppState.notifications.filter(n => n.targetEmail && n.targetEmail.toLowerCase() === myEmail);
@@ -2319,6 +2509,26 @@ function markAllRead() {
 // HOMOLOGAÇÃO (SIMULAÇÃO PARA GERENTE)
 // ========================
 
+// Insere ou remove a barra de homologação dinamicamente para não deixar controles de gerente no HTML inicial
+function syncHomologationBar() {
+  const existing = document.getElementById('homologation-bar');
+  if (!isSimulationAllowed()) {
+    if (existing) existing.remove();
+    return;
+  }
+  if (!existing) {
+    const tpl = document.createElement('template');
+    tpl.innerHTML =
+      '<div id="homologation-bar" class="no-print">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' +
+        '<span>Modo Homologação (Gerente) — Simular visão como:</span>' +
+        '<select id="debug-switch-user" onchange="switchDebugUser()"></select>' +
+      '</div>';
+    document.body.appendChild(tpl.content.firstElementChild);
+  }
+  populateDebugSwitchUser();
+}
+
 function populateDebugSwitchUser() {
   const select = document.getElementById('debug-switch-user');
   if (!select) return;
@@ -2331,15 +2541,15 @@ function populateDebugSwitchUser() {
 }
 
 function switchDebugUser() {
-  if (AppState.session?.canSimulate !== true) {
-    showToast('Simulação exclusiva para gerentes autenticados.', 'error');
+  if (!isSimulationAllowed()) {
+    showToast('Simulação exclusiva para o gerente autenticado.', 'error');
     return;
   }
   const select = document.getElementById('debug-switch-user');
   const user = AppState.users.find(u => u.id === select?.value);
   if (!user) return;
 
-  AppState.session = { user: { ...user }, canSimulate: true };
+  AppState.session = { user: sanitizeSessionUser(user), canSimulate: true };
   saveState();
   clearFilters();
   showApp();
@@ -2379,15 +2589,19 @@ function initApp() {
   if (AppState.session?.user) {
     const freshUser = AppState.users.find(u => u.id === AppState.session.user.id);
     if (freshUser) {
-      const canSim = AppState.session.canSimulate === true || freshUser.role === 'Gerente';
-      AppState.session = { user: { ...freshUser }, canSimulate: canSim };
+      const isMgr = isManagerUser(freshUser);
+      managerSimulationUnlocked = isMgr;
+      AppState.session = { user: sanitizeSessionUser(freshUser), canSimulate: isMgr };
+      saveState();
       showApp();
       return;
     }
+    managerSimulationUnlocked = false;
     AppState.session = null;
     localStorage.removeItem(STORAGE_KEY_SESSION);
   }
 
+  syncHomologationBar();
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('app-shell').classList.add('hidden');
 }

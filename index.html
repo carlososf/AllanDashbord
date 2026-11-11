@@ -27,7 +27,7 @@
       <form id="login-form" onsubmit="handleLogin(event)">
         <div class="form-group">
           <label class="form-label" for="login-username">Usuário ou E-mail</label>
-          <input class="form-input" type="text" id="login-username" placeholder="Ex: AllanSantos" required autocomplete="username">
+          <input class="form-input" type="text" id="login-username" placeholder="Digite seu usuário ou e-mail" required autocomplete="username">
         </div>
         <div class="form-group">
           <label class="form-label" for="login-password">Senha</label>
@@ -37,7 +37,7 @@
         <div id="login-error" class="login-error hidden"></div>
       </form>
 
-      <!-- Formulário de Cadastro -->
+      <!-- Formulário de Cadastro (somente perfil Colaborador) -->
       <form id="register-form" class="hidden" onsubmit="handleRegister(event)">
         <div class="form-group">
           <label class="form-label" for="register-name">Nome Completo</label>
@@ -55,18 +55,7 @@
           <label class="form-label" for="register-password">Senha</label>
           <input class="form-input" type="password" id="register-password" placeholder="Mínimo 4 caracteres" required minlength="4">
         </div>
-        <div class="form-group">
-          <label class="form-label" for="register-role">Perfil</label>
-          <select class="form-select" id="register-role" onchange="toggleManagerKeyField()">
-            <option value="Colaborador">Colaborador</option>
-            <option value="Gerente">Gerente</option>
-          </select>
-        </div>
-        <div id="register-manager-key-group" class="form-group hidden">
-          <label class="form-label" for="register-manager-key">Chave Corporativa (Gerente)</label>
-          <input class="form-input" type="text" id="register-manager-key" placeholder="Informe a chave de gerente">
-          <p class="form-hint">Obrigatória para criar perfil de Gerente.</p>
-        </div>
+        <p class="form-hint" style="margin-bottom:12px;">Novas contas são criadas exclusivamente com perfil <strong>Colaborador</strong>.</p>
         <button type="submit" class="btn-primary w-full">Criar Conta</button>
         <div id="register-error" class="login-error hidden"></div>
       </form>
@@ -383,29 +372,7 @@
               <span class="table-title">Cobranças &amp; Validações Executivas</span>
             </div>
             <div class="card-box-body">
-              <form id="exec-note-form" class="no-print hidden" onsubmit="handleSaveExecNote(event)" style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #E2E8F0;">
-                <div class="form-row">
-                  <div class="form-group">
-                    <label class="form-label" for="exec-note-client">Cliente</label>
-                    <select class="form-select" id="exec-note-client">
-                      <option value="Geral">Todos / Geral</option>
-                      <option value="XP">XP</option>
-                      <option value="Santander">Santander</option>
-                      <option value="Vivo">Vivo</option>
-                      <option value="Outro">Outro</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="exec-note-system">Sistema / Módulo</label>
-                    <input type="text" class="form-input" id="exec-note-system" list="dl-systems" placeholder="Ex: SAP Recruiting">
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label class="form-label" for="exec-note-text">Cobrança / Observação Executiva</label>
-                  <textarea class="form-textarea" id="exec-note-text" rows="2" placeholder="Registre cobranças de entrega, validações ou encaminhamentos..." required></textarea>
-                </div>
-                <button type="submit" class="btn-primary btn-sm">Registrar Cobrança</button>
-              </form>
+              <div id="exec-note-form-slot"></div>
 
               <div id="exec-notes-list"></div>
             </div>
@@ -634,13 +601,6 @@
 
   <!-- TOAST CONTAINER -->
   <div id="toast-container" class="toast-container"></div>
-
-  <!-- BARRA DE HOMOLOGAÇÃO (EXCLUSIVA PARA GERENTE AUTENTICADO) -->
-  <div id="homologation-bar" class="hidden no-print">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-    <span>Modo Homologação (Gerente) — Simular visão como:</span>
-    <select id="debug-switch-user" onchange="switchDebugUser()"></select>
-  </div>
 
   <script src="app.js"></script>
 </body>
