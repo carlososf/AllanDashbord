@@ -2,7 +2,7 @@
 set "PATH=%LOCALAPPDATA%\Programs\MinGit\cmd;%PATH%"
 echo =====================================================================
 echo  Deploy Projetos Allan Santos para GitHub
-echo  Repositorio: https://github.com/carlososf/AllanDashbord.git
+echo  Repositorio: https://github.com/carlososf/allandash2.git
 echo =====================================================================
 git.exe push -u origin main
 if %ERRORLEVEL% EQU 0 (

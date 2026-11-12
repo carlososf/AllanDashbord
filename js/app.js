@@ -7,10 +7,11 @@
   'use strict';
 
   // Chave única de persistência exclusiva dos projetos XP
-  const STORAGE_KEY_PORTAL = 'xp_gov_portal_v1';
+  const STORAGE_KEY_PORTAL = 'xp_gov_portal_v2';
 
   // Chaves legadas de versões anteriores que precisam ser varridas no boot
   const LEGACY_STORAGE_KEYS = [
+    'xp_gov_portal_v1',
     'as_gov_users_v3',
     'as_gov_session_v3',
     'as_gov_wbs_activities_v4',
@@ -39,16 +40,37 @@
     passHash: '8b2b7473fd9dcbb135da011ab65487d300f89bdd3e234eadcbd8fc89c35f2782'
   };
 
-  // Base inicial real exclusiva de projetos XP (9 entregas em 3 módulos)
+  // Membros iniciais da Equipe para preenchimento e testes isolados por usuário
+  const SEED_TEAM_USERS = [
+    {
+      id: 'usr-002',
+      name: 'Enzo Pompemayer',
+      username: 'EnzoPompemayer',
+      email: 'enzo.pompemayer@xpinc.com',
+      role: 'Equipe',
+      passHash: '9f2ccb32281539e63a520497690cb243c5eb0a6196a12b5b6c52e7b5c377a33d'
+    },
+    {
+      id: 'usr-003',
+      name: 'Carlos Souza',
+      username: 'CarlosSouza',
+      email: 'carlos.souza@xpinc.com',
+      role: 'Equipe',
+      passHash: 'a3493689b8f9dbb4f6ff69fe98e197ccb0e3f9214d342535c0c3c2853fa793a4'
+    }
+  ];
+
+  // Base inicial real exclusiva de projetos XP (distribuída entre Enzo Pompemayer e Carlos Souza)
   const SEED_ACTIVITIES = [
     {
       id: 'XP-001',
+      createdBy: 'usr-002',
       system: 'SAP Recruiting',
       macro: 'A - Convivência & Migração de Dados',
       title: 'Migração dos Currículos para o Blobstorage',
-      responsibleName: 'Fabio Lima / Thiago Doria',
+      responsibleName: 'Enzo Pompemayer',
       squad: 'People Analytics / Squad Change',
-      responsibleEmail: 'fabio.lima@xpinc.com',
+      responsibleEmail: 'enzo.pompemayer@xpinc.com',
       start: '2026-11-09',
       end: '2026-11-13',
       newEnd: '',
@@ -58,12 +80,13 @@
     },
     {
       id: 'XP-002',
+      createdBy: 'usr-002',
       system: 'SAP Recruiting',
       macro: 'A - Convivência & Migração de Dados',
       title: 'Criação de De-Para dos campos (Greenhouse x SAP)',
-      responsibleName: 'Fabio Lima',
+      responsibleName: 'Enzo Pompemayer',
       squad: 'Squad SAP / People Analytics',
-      responsibleEmail: 'fabio.lima@xpinc.com',
+      responsibleEmail: 'enzo.pompemayer@xpinc.com',
       start: '2026-11-06',
       end: '2026-11-12',
       newEnd: '',
@@ -73,12 +96,13 @@
     },
     {
       id: 'XP-003',
+      createdBy: 'usr-002',
       system: 'SAP Recruiting',
       macro: 'B - Operação & Convivência R&S',
       title: 'Acompanhamento de Vagas e Indicadores (nos dois sistemas)',
-      responsibleName: 'Luiza Angélica',
+      responsibleName: 'Enzo Pompemayer',
       squad: 'R&S',
-      responsibleEmail: 'luiza.angelica@xpinc.com',
+      responsibleEmail: 'enzo.pompemayer@xpinc.com',
       start: '2026-10-14',
       end: '2026-12-31',
       newEnd: '',
@@ -88,12 +112,13 @@
     },
     {
       id: 'XP-004',
+      createdBy: 'usr-003',
       system: 'Admissão Digital',
       macro: 'A - Integração & Homologação',
       title: 'Homologação da solução GreenHouse > Genera',
-      responsibleName: 'Sara Campos / Karina Andreto',
+      responsibleName: 'Carlos Souza',
       squad: 'Admissão / Epi-Use',
-      responsibleEmail: 'sara.campos@xpinc.com',
+      responsibleEmail: 'carlos.souza@xpinc.com',
       start: '2026-10-20',
       end: '2026-10-26',
       newEnd: '2026-10-30',
@@ -103,12 +128,13 @@
     },
     {
       id: 'XP-005',
+      createdBy: 'usr-003',
       system: 'Admissão Digital',
       macro: 'B - Legado & Decommission Vlow',
       title: 'Execução do robô do legado Vlow',
-      responsibleName: 'Guilherme Magalhães / Karina Andreto',
+      responsibleName: 'Carlos Souza',
       squad: 'Run&Ops / Admissão',
-      responsibleEmail: 'guilherme.magalhaes@xpinc.com',
+      responsibleEmail: 'carlos.souza@xpinc.com',
       start: '2026-11-04',
       end: '2026-11-04',
       newEnd: '2026-11-06',
@@ -118,12 +144,13 @@
     },
     {
       id: 'XP-006',
+      createdBy: 'usr-003',
       system: 'Admissão Digital',
       macro: 'B - Legado & Decommission Vlow',
       title: 'Cálculo da volumetria de documentos não integrados - Vlow',
-      responsibleName: 'Rafael Oliveira / Ivo Hashimoto',
+      responsibleName: 'Carlos Souza',
       squad: 'Squad SAP',
-      responsibleEmail: 'rafael.oliveira@xpinc.com',
+      responsibleEmail: 'carlos.souza@xpinc.com',
       start: '2026-11-06',
       end: '2026-11-10',
       newEnd: '',
@@ -133,12 +160,13 @@
     },
     {
       id: 'XP-007',
+      createdBy: 'usr-002',
       system: 'Onboarding & Acessos',
       macro: 'A - Gestão de Acessos (Piloto 2)',
       title: 'Consolidar e disponibilizar a lista de usuários do Piloto 2',
-      responsibleName: 'Beatriz Mancini',
+      responsibleName: 'Enzo Pompemayer',
       squad: 'R&S',
-      responsibleEmail: 'beatriz.mancini@xpinc.com',
+      responsibleEmail: 'enzo.pompemayer@xpinc.com',
       start: '2026-11-06',
       end: '2026-11-13',
       newEnd: '',
@@ -148,12 +176,13 @@
     },
     {
       id: 'XP-008',
+      createdBy: 'usr-002',
       system: 'Onboarding & Acessos',
       macro: 'A - Gestão de Acessos (Piloto 2)',
       title: 'Configuração de Acessos - Piloto 2',
-      responsibleName: 'Luiz Jorge / Débora Sawada',
+      responsibleName: 'Enzo Pompemayer',
       squad: 'Gestão de Acessos',
-      responsibleEmail: 'luiz.jorge@xpinc.com',
+      responsibleEmail: 'enzo.pompemayer@xpinc.com',
       start: '2026-11-18',
       end: '2026-11-27',
       newEnd: '',
@@ -163,12 +192,13 @@
     },
     {
       id: 'XP-009',
+      createdBy: 'usr-003',
       system: 'Onboarding & Acessos',
       macro: 'B - Sustentação & WarRoom',
       title: 'Canal de suporte e Monitoramento da adoção (WarRoom)',
-      responsibleName: 'Camila Silva / Tatiana Lima',
+      responsibleName: 'Carlos Souza',
       squad: 'PMO / Squad SAP / Epi-Use',
-      responsibleEmail: 'camila.silva@xpinc.com',
+      responsibleEmail: 'carlos.souza@xpinc.com',
       start: '2026-11-03',
       end: '2027-01-01',
       newEnd: '',
@@ -182,36 +212,39 @@
   const SEED_RITMS = [
     {
       uid: 'ritm-xp-1',
+      createdBy: 'usr-002',
       code: 'RITM18437224',
       system: 'SAP Recruiting',
       description: 'Disponibilizar para o LinkedIn o XML do job posting conforme solicitado.',
       action: 'Feed XML ajustado e disponibilizado. Fechado no Taylor.',
       severity: 'Alta (P2)',
-      squad: 'EPI Use - Karina Santos',
+      squad: 'Enzo Pompemayer • EPI Use - Karina Santos',
       status: 'Concluído',
-      ownerEmail: 'karina.santos@epiuse.com'
+      ownerEmail: 'enzo.pompemayer@xpinc.com'
     },
     {
       uid: 'ritm-xp-2',
+      createdBy: 'usr-003',
       code: 'RITM18437741',
       system: 'Admissão Digital',
       description: 'Quando há declínio na Admissão Digital (Genera), atualizar o status da posição para o recrutamento no EC.',
       action: 'Ajuste realizado no ADM Digital e disponível no ambiente de QAS para validação.',
       severity: 'Média (P3)',
-      squad: 'EPI Use - Natanael',
+      squad: 'Carlos Souza • EPI Use - Natanael',
       status: 'Em análise',
-      ownerEmail: 'natanael@epiuse.com'
+      ownerEmail: 'carlos.souza@xpinc.com'
     },
     {
       uid: 'ritm-xp-3',
+      createdBy: 'usr-002',
       code: 'RITM18437763',
       system: 'Onboarding & Acessos',
       description: 'Contrato de Trabalho e mensagens do Onboarding devem ser enviados para o e-mail pessoal dos colaboradores.',
       action: 'Correção feita no ADM Digital; testes em andamento com Karina Andreto em QAS.',
       severity: 'Média (P3)',
-      squad: 'EPI Use - Natanael / Squad SAP - Fabio e Rafael',
+      squad: 'Enzo Pompemayer • Squad SAP',
       status: 'Em análise',
-      ownerEmail: 'natanael@epiuse.com'
+      ownerEmail: 'enzo.pompemayer@xpinc.com'
     }
   ];
 
@@ -477,37 +510,42 @@
       name: String(user.name || ''),
       username: String(user.username || ''),
       email: String(user.email || ''),
-      role: user.id === MANAGER_USER_ID ? 'Gerente' : 'Colaborador'
+      role: user.id === MANAGER_USER_ID ? 'Gerente' : 'Equipe'
     };
   }
 
   function normalizeUsersList(rawUsers) {
     const list = Array.isArray(rawUsers) ? rawUsers : [];
-    const others = list
+    const customOthers = list
       .filter((u) => u && u.id && u.id !== MANAGER_USER_ID && normalizeText(u.username) !== 'allansantos')
       .map((u) => {
         const cleanId = String(u.id);
-        // Garante hash mesmo se vier registro antigo e trava qualquer usuário comum como Colaborador
+        // Garante hash mesmo se vier registro antigo e trava qualquer usuário comum como Equipe
         const computedHash = u.passHash
           ? String(u.passHash)
           : (u.password ? hashPassword(cleanId, u.password) : '');
         return {
           id: cleanId,
-          name: String(u.name || 'Colaborador'),
+          name: String(u.name || 'Equipe'),
           username: String(u.username || cleanId),
           email: String(u.email || ''),
-          role: 'Colaborador',
+          role: 'Equipe',
           passHash: computedHash
         };
       });
 
-    // Gerente único fixo: AllanSantos
-    return [{ ...DEFAULT_MANAGER }, ...others];
+    // Garante gerente único (AllanSantos) e presença da equipe base (Enzo e Carlos)
+    const mergedMap = new Map();
+    mergedMap.set(MANAGER_USER_ID, { ...DEFAULT_MANAGER });
+    SEED_TEAM_USERS.forEach((tu) => mergedMap.set(tu.id, { ...tu }));
+    customOthers.forEach((cu) => mergedMap.set(cu.id, cu));
+
+    return Array.from(mergedMap.values());
   }
 
   function createInitialPortalState() {
     return {
-      version: 1,
+      version: 2,
       seeded: true,
       users: normalizeUsersList([]),
       activities: SEED_ACTIVITIES.map((a) => ({ ...a })),
@@ -535,11 +573,12 @@
       }
 
       portalData = {
-        version: 1,
+        version: 2,
         seeded: true,
         users: normalizeUsersList(parsed.users),
         activities: parsed.activities.map((a) => ({
           id: String(a.id || ''),
+          createdBy: String(a.createdBy || ''),
           system: String(a.system || 'Projeto XP'),
           macro: String(a.macro || 'Geral'),
           title: String(a.title || ''),
@@ -568,7 +607,7 @@
     if (!portalData) return;
     try {
       const safePayload = {
-        version: 1,
+        version: 2,
         seeded: true,
         users: portalData.users,
         activities: portalData.activities,
@@ -598,35 +637,64 @@
 
   function getEffectiveRole() {
     const eff = getEffectiveUser();
-    return eff ? eff.role : 'Colaborador';
+    return eff ? eff.role : 'Equipe';
   }
 
   function canManageAll() {
     return isManagerUser(currentUser) && getEffectiveRole() === 'Gerente';
   }
 
-  function canEditActivity(act) {
-    if (!currentUser) return false;
+  // Isolamento rigoroso: membro da Equipe só enxerga projetos colocados por ele; Gerente enxerga tudo
+  function canViewActivity(act) {
+    if (!currentUser || !act) return false;
     if (canManageAll()) return true;
     const eff = getEffectiveUser();
+    if (!eff) return false;
+    if (act.createdBy && act.createdBy === eff.id) return true;
     const effMail = normalizeText(eff.email);
     const effName = normalizeText(eff.name);
     return (
       (effMail && normalizeText(act.responsibleEmail) === effMail) ||
-      (effName && normalizeText(act.responsibleName).includes(effName))
+      (effName && normalizeText(act.responsibleName) === effName)
     );
   }
 
-  function canEditRitm(ritm) {
-    if (!currentUser) return false;
+  function canEditActivity(act) {
+    return canViewActivity(act);
+  }
+
+  function canViewRitm(ritm) {
+    if (!currentUser || !ritm) return false;
     if (canManageAll()) return true;
     const eff = getEffectiveUser();
+    if (!eff) return false;
+    if (ritm.createdBy && ritm.createdBy === eff.id) return true;
     const effMail = normalizeText(eff.email);
-    const effName = normalizeText(eff.name);
-    return (
-      (effMail && normalizeText(ritm.ownerEmail) === effMail) ||
-      (effName && normalizeText(ritm.squad).includes(effName))
-    );
+    return Boolean(effMail && normalizeText(ritm.ownerEmail) === effMail);
+  }
+
+  function canEditRitm(ritm) {
+    return canViewRitm(ritm);
+  }
+
+  function getScopedActivities() {
+    if (!portalData) return [];
+    return portalData.activities.filter(canViewActivity);
+  }
+
+  function getScopedRitms() {
+    if (!portalData) return [];
+    return portalData.ritms.filter(canViewRitm);
+  }
+
+  function getScopedExecNotes() {
+    if (!portalData) return [];
+    if (canManageAll()) return portalData.execNotes;
+    const visibleSystems = new Set([
+      ...getScopedActivities().map((a) => a.system),
+      ...getScopedRitms().map((r) => r.system)
+    ]);
+    return portalData.execNotes.filter((n) => visibleSystems.has(n.system));
   }
 
   function renderExecNoteFormSlot() {
@@ -670,13 +738,12 @@
       if (shell) shell.appendChild(bar);
     }
 
-    const collabs = portalData.users.filter((u) => u.id !== MANAGER_USER_ID);
+    const teamMembers = portalData.users.filter((u) => u.id !== MANAGER_USER_ID);
     const simId = simulationUser ? simulationUser.id : 'manager';
 
     let optionsHtml = `<option value="manager"${simId === 'manager' ? ' selected' : ''}>Visão Gerente (Allan Santos)</option>`;
-    optionsHtml += `<option value="collab-preview"${simId === 'collab-preview' ? ' selected' : ''}>Simular Colaborador Padrão (somente leitura global)</option>`;
-    collabs.forEach((c) => {
-      optionsHtml += `<option value="${escapeHtml(c.id)}"${simId === c.id ? ' selected' : ''}>Simular: ${escapeHtml(c.name)}</option>`;
+    teamMembers.forEach((m) => {
+      optionsHtml += `<option value="${escapeHtml(m.id)}"${simId === m.id ? ' selected' : ''}>Simular: ${escapeHtml(m.name)} (Equipe)</option>`;
     });
 
     bar.innerHTML = `
@@ -712,20 +779,31 @@
     if (!isManagerUser(currentUser)) return;
     if (selectedId === 'manager') {
       simulationUser = null;
-    } else if (selectedId === 'collab-preview') {
-      simulationUser = {
-        id: 'collab-preview',
-        name: 'Colaborador XP (Simulação)',
-        username: 'colaborador.xp',
-        email: 'colaborador@xpinc.com',
-        role: 'Colaborador'
-      };
     } else {
       const found = portalData.users.find((u) => u.id === selectedId);
       simulationUser = found ? sanitizeSessionUser(found) : null;
     }
+    expandDefaultTreeNodes();
     updateHeaderAndWorkspaceIdentity();
     renderAll();
+  }
+
+  // Acesso rápido para teste dos 3 perfis (Allan Gerente, Enzo Equipe, Carlos Equipe) sem senhas expostas no HTML
+  function quickLoginTest(userId) {
+    const allowedTestIds = new Set(['usr-001', 'usr-002', 'usr-003']);
+    if (!allowedTestIds.has(userId)) return;
+    const matchedUser = portalData.users.find((u) => u.id === userId);
+    if (!matchedUser) return;
+
+    currentUser = sanitizeSessionUser(matchedUser);
+    simulationUser = null;
+    portalData.session = currentUser;
+    saveStore();
+
+    const errEl = document.getElementById('login-error');
+    if (errEl) errEl.classList.add('hidden');
+    showToast(`Conectado como ${currentUser.name} (${currentUser.role}).`, 'success');
+    enterAppShell();
   }
 
   function toggleRegisterForm() {
@@ -809,13 +887,13 @@
     }
 
     const newId = 'usr-' + Date.now();
-    // Auto-cadastro é bloqueado sempre como Colaborador (gerente único = AllanSantos)
+    // Auto-cadastro é bloqueado sempre como Equipe (gerente único = AllanSantos)
     const newUser = {
       id: newId,
       name,
       username,
       email,
-      role: 'Colaborador',
+      role: 'Equipe',
       passHash: hashPassword(newId, pass)
     };
 
@@ -826,7 +904,7 @@
     saveStore();
 
     document.getElementById('register-form').reset();
-    showToast(`Bem-vindo(a), ${name}! Acesso criado como Colaborador.`, 'success');
+    showToast(`Bem-vindo(a), ${name}! Acesso criado como Equipe.`, 'success');
     enterAppShell();
   }
 
@@ -862,8 +940,6 @@
     document.getElementById('header-role').textContent = roleText;
 
     document.getElementById('workspace-greeting').textContent = `Painel de Governança — ${eff.name}`;
-    document.getElementById('workspace-context').textContent =
-      'Portfólio de Projetos XP — Cronograma WBS em 3 Níveis & Hypercare';
 
     renderExecNoteFormSlot();
     syncHomologationBar();
@@ -872,7 +948,7 @@
   function expandDefaultTreeNodes() {
     expandedSystems.clear();
     expandedMacros.clear();
-    portalData.activities.forEach((act) => {
+    getScopedActivities().forEach((act) => {
       expandedSystems.add(act.system);
       expandedMacros.add(`${act.system}:::${act.macro}`);
     });
@@ -899,13 +975,15 @@
     const sysSet = new Set();
     const macroSet = new Set();
     const respSet = new Set();
+    const scopedActs = getScopedActivities();
+    const scopedRitms = getScopedRitms();
 
-    portalData.activities.forEach((a) => {
+    scopedActs.forEach((a) => {
       if (a.system) sysSet.add(a.system);
       if (a.macro) macroSet.add(a.macro);
       if (a.responsibleName) respSet.add(a.responsibleName);
     });
-    portalData.ritms.forEach((r) => {
+    scopedRitms.forEach((r) => {
       if (r.system) sysSet.add(r.system);
     });
 
@@ -917,22 +995,37 @@
     const prevSys = filterSysEl.value;
     filterSysEl.innerHTML = '<option value="">Todos</option>' +
       systems.map((s) => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
-    if (systems.includes(prevSys)) filterSysEl.value = prevSys;
+    if (systems.includes(prevSys)) {
+      filterSysEl.value = prevSys;
+    } else {
+      filterSysEl.value = '';
+      filterState.system = '';
+    }
 
     const filterRespEl = document.getElementById('filter-responsible');
     const prevResp = filterRespEl.value;
     filterRespEl.innerHTML = '<option value="">Todos</option>' +
       resps.map((r) => `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join('');
-    if (resps.includes(prevResp)) filterRespEl.value = prevResp;
+    if (resps.includes(prevResp)) {
+      filterRespEl.value = prevResp;
+    } else {
+      filterRespEl.value = '';
+      filterState.responsible = '';
+    }
 
     document.getElementById('dl-systems').innerHTML = systems.map((s) => `<option value="${escapeHtml(s)}">`).join('');
     document.getElementById('dl-macros').innerHTML = macros.map((m) => `<option value="${escapeHtml(m)}">`).join('');
 
     const peopleMap = new Map();
-    portalData.users.forEach((u) => {
-      if (u.name) peopleMap.set(u.name, u.email || '');
-    });
-    portalData.activities.forEach((a) => {
+    if (canManageAll()) {
+      portalData.users.forEach((u) => {
+        if (u.name) peopleMap.set(u.name, u.email || '');
+      });
+    } else {
+      const eff = getEffectiveUser();
+      if (eff && eff.name) peopleMap.set(eff.name, eff.email || '');
+    }
+    scopedActs.forEach((a) => {
       if (a.responsibleName && !peopleMap.has(a.responsibleName)) {
         peopleMap.set(a.responsibleName, a.responsibleEmail || '');
       }
@@ -945,7 +1038,7 @@
 
   function getFilteredActivities() {
     const q = normalizeText(filterState.search);
-    return portalData.activities.filter((act) => {
+    return getScopedActivities().filter((act) => {
       if (filterState.system && act.system !== filterState.system) return false;
       if (filterState.status && act.status !== filterState.status) return false;
       if (filterState.responsible && act.responsibleName !== filterState.responsible) return false;
@@ -962,7 +1055,7 @@
 
   function getFilteredRitms() {
     const q = normalizeText(filterState.search);
-    return portalData.ritms.filter((r) => {
+    return getScopedRitms().filter((r) => {
       if (filterState.system && r.system !== filterState.system) return false;
       if (q) {
         const hay = normalizeText(`${r.code} ${r.system} ${r.description} ${r.action} ${r.squad} ${r.status}`);
@@ -974,7 +1067,7 @@
 
   function getFilteredExecNotes() {
     const q = normalizeText(filterState.search);
-    return portalData.execNotes.filter((n) => {
+    return getScopedExecNotes().filter((n) => {
       if (filterState.system && n.system !== filterState.system) return false;
       if (q) {
         const hay = normalizeText(`${n.system} ${n.author} ${n.text}`);
@@ -1008,7 +1101,7 @@
   }
 
   function expandAllNodes() {
-    portalData.activities.forEach((a) => {
+    getScopedActivities().forEach((a) => {
       expandedSystems.add(a.system);
       expandedMacros.add(`${a.system}:::${a.macro}`);
     });
@@ -1017,7 +1110,7 @@
   }
 
   function collapseMicros() {
-    portalData.activities.forEach((a) => expandedSystems.add(a.system));
+    getScopedActivities().forEach((a) => expandedSystems.add(a.system));
     expandedMacros.clear();
     renderWbs();
     renderGantt();
@@ -1081,15 +1174,6 @@
     const val = document.getElementById('ref-date-input').value;
     refDateIso = val || getTodayIso();
     renderGantt();
-  }
-
-  function printExecutiveReport() {
-    const eff = getEffectiveUser();
-    const metaEl = document.getElementById('print-meta-date');
-    if (metaEl) {
-      metaEl.textContent = `Emitido por ${eff ? eff.name : 'Usuário'} em ${formatNowBr()} | Data Ref.: ${formatIsoToBr(refDateIso)}`;
-    }
-    window.print();
   }
 
   /* ========================================================================
@@ -1284,7 +1368,7 @@
         (sum, mc) => sum + mc.micros.filter((item) => item.status === 'Em atenção').length,
         0
       );
-      const ritmsInSys = portalData.ritms.filter(
+      const ritmsInSys = getScopedRitms().filter(
         (r) => r.system === sysNode.system && r.status !== 'Concluído'
       ).length;
 
@@ -2014,10 +2098,14 @@
     document.getElementById('act-progress-val').textContent = '20%';
     document.getElementById('act-delete-btn').classList.add('hidden');
 
+    const respNameEl = document.getElementById('act-resp-name');
+    const respEmailEl = document.getElementById('act-resp-email');
     if (eff) {
-      document.getElementById('act-resp-name').value = eff.name;
-      document.getElementById('act-resp-email').value = eff.email;
+      respNameEl.value = eff.name;
+      respEmailEl.value = eff.email;
     }
+    respNameEl.readOnly = !canManageAll();
+    respEmailEl.readOnly = !canManageAll();
 
     if (filterState.system) {
       document.getElementById('act-system').value = filterState.system;
@@ -2042,8 +2130,12 @@
     document.getElementById('act-code').value = act.id;
     document.getElementById('act-code').readOnly = true;
     document.getElementById('act-title').value = act.title;
-    document.getElementById('act-resp-name').value = act.responsibleName;
-    document.getElementById('act-resp-email').value = act.responsibleEmail;
+    const respNameEl = document.getElementById('act-resp-name');
+    const respEmailEl = document.getElementById('act-resp-email');
+    respNameEl.value = act.responsibleName;
+    respEmailEl.value = act.responsibleEmail;
+    respNameEl.readOnly = !canManageAll();
+    respEmailEl.readOnly = !canManageAll();
     document.getElementById('act-start').value = act.start;
     document.getElementById('act-end').value = act.end;
     document.getElementById('act-new-end').value = act.newEnd || '';
@@ -2058,14 +2150,19 @@
 
   function handleSaveActivity(event) {
     event.preventDefault();
+    const eff = getEffectiveUser();
     const editId = document.getElementById('act-edit-id').value.trim();
 
     const system = document.getElementById('act-system').value.trim();
     const macro = document.getElementById('act-macro').value.trim();
     const rawCode = document.getElementById('act-code').value.trim();
     const title = document.getElementById('act-title').value.trim();
-    const responsibleName = document.getElementById('act-resp-name').value.trim();
-    const responsibleEmail = document.getElementById('act-resp-email').value.trim();
+    const responsibleName = canManageAll()
+      ? document.getElementById('act-resp-name').value.trim()
+      : (eff ? eff.name : document.getElementById('act-resp-name').value.trim());
+    const responsibleEmail = canManageAll()
+      ? document.getElementById('act-resp-email').value.trim()
+      : (eff ? eff.email : document.getElementById('act-resp-email').value.trim());
     const start = document.getElementById('act-start').value;
     const end = document.getElementById('act-end').value;
     const newEnd = document.getElementById('act-new-end').value;
@@ -2113,6 +2210,7 @@
 
       portalData.activities.push({
         id: code,
+        createdBy: eff ? eff.id : '',
         system,
         macro,
         title,
@@ -2161,7 +2259,9 @@
     document.getElementById('ritm-edit-uid').value = '';
     document.getElementById('ritm-severity').value = 'Média (P3)';
     document.getElementById('ritm-status').value = 'Em análise';
-    document.getElementById('ritm-owner-email').value = eff ? eff.email : '';
+    const ownerEl = document.getElementById('ritm-owner-email');
+    ownerEl.value = eff ? eff.email : '';
+    ownerEl.readOnly = !canManageAll();
     document.getElementById('ritm-delete-btn').classList.add('hidden');
 
     if (filterState.system) {
@@ -2188,7 +2288,9 @@
     document.getElementById('ritm-desc').value = ritm.description;
     document.getElementById('ritm-squad').value = ritm.squad;
     document.getElementById('ritm-status').value = ritm.status;
-    document.getElementById('ritm-owner-email').value = ritm.ownerEmail || '';
+    const ownerEl = document.getElementById('ritm-owner-email');
+    ownerEl.value = ritm.ownerEmail || '';
+    ownerEl.readOnly = !canManageAll();
     document.getElementById('ritm-action').value = ritm.action || '';
 
     document.getElementById('ritm-delete-btn').classList.toggle('hidden', !canManageAll());
@@ -2197,6 +2299,7 @@
 
   function handleSaveRitm(event) {
     event.preventDefault();
+    const eff = getEffectiveUser();
     const editUid = document.getElementById('ritm-edit-uid').value.trim();
 
     const code = document.getElementById('ritm-code').value.trim().toUpperCase();
@@ -2205,7 +2308,9 @@
     const description = document.getElementById('ritm-desc').value.trim();
     const squad = document.getElementById('ritm-squad').value.trim();
     const status = document.getElementById('ritm-status').value;
-    const ownerEmail = document.getElementById('ritm-owner-email').value.trim();
+    const ownerEmail = canManageAll()
+      ? document.getElementById('ritm-owner-email').value.trim()
+      : (eff ? eff.email : document.getElementById('ritm-owner-email').value.trim());
     const action = document.getElementById('ritm-action').value.trim();
 
     if (editUid) {
@@ -2231,6 +2336,7 @@
     } else {
       portalData.ritms.unshift({
         uid: 'ritm-xp-' + Date.now(),
+        createdBy: eff ? eff.id : '',
         code,
         system,
         severity,
@@ -2387,13 +2493,13 @@
   // Exposição explícita apenas dos handlers acionados pelo HTML
   window.handleLogin = handleLogin;
   window.handleRegister = handleRegister;
+  window.quickLoginTest = quickLoginTest;
   window.toggleRegisterForm = toggleRegisterForm;
   window.logout = logout;
   window.toggleNotifications = toggleNotifications;
   window.markNotificationRead = markNotificationRead;
   window.markAllRead = markAllRead;
   window.handleRefDateChange = handleRefDateChange;
-  window.printExecutiveReport = printExecutiveReport;
   window.switchWorkspaceTab = switchWorkspaceTab;
   window.applyFilters = applyFilters;
   window.clearFilters = clearFilters;

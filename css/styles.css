@@ -143,6 +143,64 @@ body {
   font-family: inherit;
 }
 
+.quick-login-box {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.quick-login-title {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.quick-login-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.quick-login-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 11px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #F8FAFC;
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.quick-login-btn:hover {
+  border-color: var(--primary);
+  background: #EFF6FF;
+}
+
+.quick-login-role {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: #E2E8F0;
+  color: var(--text-body);
+}
+
+.quick-login-role.is-manager {
+  background: #DBEAFE;
+  color: #1D4ED8;
+}
+
 /* ========================
    FORMULÁRIOS & BOTÕES
    ======================== */
@@ -1280,8 +1338,6 @@ body {
   border-radius: 3px;
 }
 
-.print-only-header { display: none; }
-
 /* ========================
    RESPONSIVIDADE
    ======================== */
@@ -1298,35 +1354,4 @@ body {
   .kpi-grid-6 { grid-template-columns: repeat(2, 1fr); }
   .form-row, .form-row-3 { grid-template-columns: 1fr; }
   .notif-popover { width: calc(100vw - 24px); right: 12px; }
-}
-
-/* ========================
-   OTIMIZAÇÃO DE IMPRESSÃO
-   ======================== */
-@media print {
-  @page { size: landscape; margin: 10mm; }
-  body { background: #FFF; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  #login-screen,
-  #homologation-bar,
-  #toast-container,
-  #gantt-tooltip,
-  #popover-notifications,
-  .no-print {
-    display: none !important;
-  }
-  #app-header { position: static; border-bottom: 1px solid #CBD5E1; padding: 0 0 8px; height: auto; margin-bottom: 10px; }
-  .workspace-main { padding: 0; max-width: none; }
-  .print-only-header {
-    display: flex !important;
-    justify-content: space-between;
-    font-size: 11px;
-    color: #475569;
-    border-bottom: 1px solid #E2E8F0;
-    padding-bottom: 6px;
-    margin-bottom: 10px;
-  }
-  .table-scroll, .gantt-scroll-area {
-    max-height: none !important;
-    overflow: visible !important;
-  }
 }
