@@ -88,7 +88,7 @@ Atualmente, os dados ficam gravados apenas no `localStorage` do navegador (`xp_g
 
 ## 5. Contratos de API REST (Substituição do `localStorage`)
 
-No arquivo [js/app.js](file:///c:/Users/carlos.cesar.de.oli1/Downloads/Web%20Projetos%20Allan%20Santos/js/app.js), toda persistência já está isolada em `loadStore()`, `saveStore()` e nos handlers de salvamento/exclusão. Ao plugar o Backend, trocaremos apenas essas chamadas locais por requisições `fetch()` para os seguintes endpoints:
+No arquivo [js/app.js](../js/app.js), toda persistência já está isolada em `loadStore()`, `saveStore()` e nos handlers de salvamento/exclusão. Ao plugar o Backend, trocaremos apenas essas chamadas locais por requisições `fetch()` para os seguintes endpoints:
 
 - **Autenticação**
   - `POST /api/auth/login` → valida senha no servidor e devolve sessão/JWT.
