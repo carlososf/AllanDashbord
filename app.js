@@ -1,13 +1,13 @@
 /* ==========================================================================
-   Projetos Allan Santos — Portal de Governança | PD Gente — XP
+   Projetos Allan Santos — Portal de Governança | XP
    app.js — Aplicação unificada na raiz (Auth, RBAC, Store, WBS, Gantt & Hypercare)
    ========================================================================== */
 
 (function () {
   'use strict';
 
-  // Chave única de persistência exclusiva do programa PD Gente (XP)
-  const STORAGE_KEY_PORTAL = 'xp_pdgente_gov_v1';
+  // Chave única de persistência exclusiva dos projetos XP
+  const STORAGE_KEY_PORTAL = 'xp_gov_portal_v1';
 
   // Chaves legadas de versões anteriores que precisam ser varridas no boot
   const LEGACY_STORAGE_KEYS = [
@@ -39,7 +39,7 @@
     passHash: '8b2b7473fd9dcbb135da011ab65487d300f89bdd3e234eadcbd8fc89c35f2782'
   };
 
-  // Base inicial real exclusiva do programa PD Gente — XP (9 entregas em 3 módulos)
+  // Base inicial real exclusiva de projetos XP (9 entregas em 3 módulos)
   const SEED_ACTIVITIES = [
     {
       id: 'XP-001',
@@ -445,7 +445,7 @@
   }
 
   /* ========================================================================
-     PERSISTÊNCIA ÚNICA (xp_pdgente_gov_v1) & LIMPEZA DE CACHE ANTIGO
+     PERSISTÊNCIA ÚNICA (xp_gov_portal_v1) & LIMPEZA DE CACHE ANTIGO
      ======================================================================== */
 
   function purgeLegacyStorage() {
@@ -457,6 +457,16 @@
         /* ignore */
       }
     });
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key && key !== STORAGE_KEY_PORTAL && (key.startsWith('xp_pd') || key.startsWith('as_gov_') || key.startsWith('gov_portal_'))) {
+          localStorage.removeItem(key);
+        }
+      }
+    } catch (_) {
+      /* ignore */
+    }
   }
 
   function sanitizeSessionUser(user) {
@@ -530,7 +540,7 @@
         users: normalizeUsersList(parsed.users),
         activities: parsed.activities.map((a) => ({
           id: String(a.id || ''),
-          system: String(a.system || 'PD Gente XP'),
+          system: String(a.system || 'Projeto XP'),
           macro: String(a.macro || 'Geral'),
           title: String(a.title || ''),
           responsibleName: String(a.responsibleName || ''),
@@ -848,12 +858,12 @@
     document.getElementById('header-username').textContent = eff.name;
     const roleText = isManagerUser(currentUser) && simulationUser
       ? `Simulando: ${eff.role}`
-      : `${eff.role} • PD Gente XP`;
+      : `${eff.role} • Projetos XP`;
     document.getElementById('header-role').textContent = roleText;
 
     document.getElementById('workspace-greeting').textContent = `Painel de Governança — ${eff.name}`;
     document.getElementById('workspace-context').textContent =
-      'Programa PD Gente (XP) — Cronograma WBS em 3 Níveis & Hypercare';
+      'Portfólio de Projetos XP — Cronograma WBS em 3 Níveis & Hypercare';
 
     renderExecNoteFormSlot();
     syncHomologationBar();
@@ -1250,7 +1260,7 @@
       emptyEl.classList.remove('hidden');
       emptyEl.innerHTML = `
         <div class="empty-state-title">Nenhuma atividade encontrada para os filtros aplicados</div>
-        <div class="empty-state-text">Limpe os filtros ou cadastre uma nova entrega do programa PD Gente — XP.</div>
+        <div class="empty-state-text">Limpe os filtros ou cadastre uma nova entrega dos projetos XP.</div>
         <button type="button" class="btn-secondary btn-sm" onclick="clearFilters()">Limpar Filtros</button>
       `;
       return;
@@ -1991,7 +2001,7 @@
     if (!currentUser) return;
     const eff = getEffectiveUser();
 
-    document.getElementById('modal-activity-title').textContent = 'Novo Cadastro — Entrega PD Gente (XP)';
+    document.getElementById('modal-activity-title').textContent = 'Novo Cadastro — Entrega XP';
     document.getElementById('activity-form').reset();
     document.getElementById('act-edit-id').value = '';
     document.getElementById('act-code').value = '';

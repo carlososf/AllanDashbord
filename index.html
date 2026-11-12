@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Projetos Allan Santos — Portal de Governança | PD Gente — XP</title>
+  <title>Projetos Allan Santos — Portal de Governança | XP</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
 
   <!-- ============================================================
@@ -18,25 +22,26 @@
     <div class="login-card">
       <div class="login-logos">
         <img src="mslogo.png" alt="Consultoria" class="login-logo"
-             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
         <div class="login-logo-fallback" style="display:none;">AS</div>
         <div class="login-logo-divider"></div>
-        <img src="logoxp.webp" alt="XP Inc." class="login-xp-logo"
-             onerror="this.style.display='none';">
+        <img src="logoxp.webp" alt="XP Inc." class="login-xp-logo" onerror="this.style.display='none';">
       </div>
 
       <h1 class="login-title">Projetos Allan Santos</h1>
-      <p class="login-subtitle">Portal de Governança | PD Gente — XP</p>
+      <p class="login-subtitle">Portal de Governança — XP</p>
 
       <!-- Formulário de Login -->
       <form id="login-form" onsubmit="handleLogin(event)">
         <div class="form-group">
           <label class="form-label" for="login-username">Usuário ou E-mail</label>
-          <input class="form-input" type="text" id="login-username" placeholder="Digite seu usuário ou e-mail" required autocomplete="username">
+          <input class="form-input" type="text" id="login-username" placeholder="Digite seu usuário ou e-mail" required
+            autocomplete="username">
         </div>
         <div class="form-group">
           <label class="form-label" for="login-password">Senha</label>
-          <input class="form-input" type="password" id="login-password" placeholder="••••••" required autocomplete="current-password">
+          <input class="form-input" type="password" id="login-password" placeholder="••••••" required
+            autocomplete="current-password">
         </div>
         <button type="submit" class="btn-primary w-full">Entrar no Portal</button>
         <div id="login-error" class="login-error hidden"></div>
@@ -58,9 +63,11 @@
         </div>
         <div class="form-group">
           <label class="form-label" for="register-password">Senha</label>
-          <input class="form-input" type="password" id="register-password" placeholder="Mínimo 4 caracteres" required minlength="4">
+          <input class="form-input" type="password" id="register-password" placeholder="Mínimo 4 caracteres" required
+            minlength="4">
         </div>
-        <p class="form-hint" style="margin-bottom:12px;">Novas contas são criadas exclusivamente com perfil <strong>Colaborador</strong>.</p>
+        <p class="form-hint" style="margin-bottom:12px;">Novas contas são criadas exclusivamente com perfil
+          <strong>Colaborador</strong>.</p>
         <button type="submit" class="btn-primary w-full">Criar Conta</button>
         <div id="register-error" class="login-error hidden"></div>
       </form>
@@ -81,21 +88,22 @@
     <header id="app-header">
       <div class="header-left">
         <img src="mslogo.png" alt="Consultoria" class="header-logo"
-             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
         <div class="header-logo-fallback" style="display:none;">AS</div>
         <div class="header-divider"></div>
-        <img src="logoxp.webp" alt="XP Inc." class="header-xp-logo"
-             onerror="this.style.display='none';">
+        <img src="logoxp.webp" alt="XP Inc." class="header-xp-logo" onerror="this.style.display='none';">
         <div class="header-divider"></div>
         <div class="header-brand">
           <span class="header-title">Projetos Allan Santos</span>
-          <span class="header-subtitle">Portal de Governança | PD Gente — XP</span>
+          <span class="header-subtitle">Portal de Governança — XP</span>
         </div>
       </div>
 
       <div class="header-right no-print">
-        <button type="button" class="notif-btn" id="btn-toggle-notifs" onclick="toggleNotifications()" title="Notificações">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <button type="button" class="notif-btn" id="btn-toggle-notifs" onclick="toggleNotifications()"
+          title="Notificações">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
             <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
           </svg>
@@ -116,7 +124,10 @@
       <div class="notif-popover-header">
         <span>Notificações</span>
         <button type="button" class="btn-icon" onclick="markAllRead()" title="Marcar todas como lidas">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
         </button>
       </div>
       <div class="notif-popover-body" id="notif-list"></div>
@@ -127,7 +138,7 @@
 
       <!-- Cabeçalho de Impressão (visível apenas em window.print) -->
       <div class="print-only-header">
-        <span id="print-meta-title"><strong>Relatório Executivo — Projetos Allan Santos | PD Gente — XP</strong></span>
+        <span id="print-meta-title"><strong>Relatório Executivo — Projetos Allan Santos | XP</strong></span>
         <span id="print-meta-date"></span>
       </div>
 
@@ -135,7 +146,8 @@
       <section class="operational-toolbar no-print">
         <div class="toolbar-left">
           <div class="toolbar-title" id="workspace-greeting">Painel de Governança e Linha do Tempo</div>
-          <div class="toolbar-context" id="workspace-context">Programa PD Gente (XP) — Cronograma WBS em 3 Níveis &amp; Hypercare</div>
+          <div class="toolbar-context" id="workspace-context">Portfólio de Projetos XP — Cronograma WBS em 3 Níveis &amp;
+            Hypercare</div>
         </div>
         <div class="toolbar-actions">
           <div class="ref-date-control">
@@ -144,7 +156,11 @@
           </div>
           <button type="button" class="btn-primary" onclick="openNewActivityModal()">+ Novo Cadastro</button>
           <button type="button" class="btn-secondary" onclick="printExecutiveReport()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 6 2 18 2 18 9" />
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+              <rect x="6" y="14" width="12" height="8" />
+            </svg>
             Imprimir
           </button>
         </div>
@@ -152,7 +168,8 @@
 
       <!-- NAVEGAÇÃO POR 4 ABAS -->
       <nav class="workspace-tabs no-print" id="workspace-tabs">
-        <button type="button" class="workspace-tab-btn active" id="nav-tab-overview" onclick="switchWorkspaceTab('overview')">
+        <button type="button" class="workspace-tab-btn active" id="nav-tab-overview"
+          onclick="switchWorkspaceTab('overview')">
           Visão Geral <span class="tab-counter" id="count-tab-overview">0</span>
         </button>
         <button type="button" class="workspace-tab-btn" id="nav-tab-wbs" onclick="switchWorkspaceTab('wbs')">
@@ -161,7 +178,8 @@
         <button type="button" class="workspace-tab-btn" id="nav-tab-gantt" onclick="switchWorkspaceTab('gantt')">
           Gantt (Linha do Tempo)
         </button>
-        <button type="button" class="workspace-tab-btn" id="nav-tab-hypercare" onclick="switchWorkspaceTab('hypercare')">
+        <button type="button" class="workspace-tab-btn" id="nav-tab-hypercare"
+          onclick="switchWorkspaceTab('hypercare')">
           Hypercare &amp; Validações <span class="tab-counter" id="count-tab-hypercare">0</span>
         </button>
       </nav>
@@ -198,7 +216,8 @@
 
           <div class="filter-group grow">
             <label class="filter-label" for="filter-search">Busca instantânea</label>
-            <input type="text" class="filter-input" id="filter-search" oninput="applyFilters()" placeholder="Buscar ID, atividade ou observação...">
+            <input type="text" class="filter-input" id="filter-search" oninput="applyFilters()"
+              placeholder="Buscar ID, atividade ou observação...">
           </div>
         </div>
 
@@ -208,9 +227,12 @@
             <span>Ocultar concluídas</span>
           </label>
           <div class="tree-action-buttons">
-            <button type="button" class="btn-ghost" id="btn-expand-all" onclick="expandAllNodes()">Expandir tudo</button>
-            <button type="button" class="btn-ghost" id="btn-collapse-micros" onclick="collapseMicros()">Recolher microatividades</button>
-            <button type="button" class="btn-ghost" id="btn-collapse-systems" onclick="collapseSystems()">Recolher sistemas</button>
+            <button type="button" class="btn-ghost" id="btn-expand-all" onclick="expandAllNodes()">Expandir
+              tudo</button>
+            <button type="button" class="btn-ghost" id="btn-collapse-micros" onclick="collapseMicros()">Recolher
+              microatividades</button>
+            <button type="button" class="btn-ghost" id="btn-collapse-systems" onclick="collapseSystems()">Recolher
+              sistemas</button>
             <button type="button" class="btn-ghost" onclick="clearFilters()">Limpar filtros</button>
           </div>
         </div>
@@ -269,7 +291,8 @@
       <section id="panel-wbs" class="hidden">
         <div class="table-container">
           <div class="table-header">
-            <span class="table-title">Cronograma Hierárquico (Sistema &rarr; Macroatividade &rarr; Microatividade)</span>
+            <span class="table-title">Cronograma Hierárquico (Sistema &rarr; Macroatividade &rarr;
+              Microatividade)</span>
             <span class="table-count" id="wbs-count">0 microatividades</span>
           </div>
           <div class="table-scroll">
@@ -301,8 +324,10 @@
           <div class="gantt-toolbar no-print">
             <div class="gantt-legend">
               <span class="legend-item"><span class="legend-swatch" style="background:#10B981;"></span>Concluído</span>
-              <span class="legend-item"><span class="legend-swatch" style="background:#3B82F6;"></span>Em andamento</span>
-              <span class="legend-item"><span class="legend-swatch" style="background:#94A3B8;"></span>Não iniciado</span>
+              <span class="legend-item"><span class="legend-swatch" style="background:#3B82F6;"></span>Em
+                andamento</span>
+              <span class="legend-item"><span class="legend-swatch" style="background:#94A3B8;"></span>Não
+                iniciado</span>
               <span class="legend-item"><span class="legend-swatch" style="background:#F59E0B;"></span>Em atenção</span>
               <span class="legend-item"><span class="legend-swatch" style="background:#EF4444;"></span>Atrasado</span>
               <span class="legend-item"><span class="legend-swatch" style="background:#991B1B;"></span>Bloqueado</span>
@@ -329,7 +354,8 @@
           <div class="table-container">
             <div class="table-header">
               <span class="table-title">Defeitos &amp; Chamados (RITMs)</span>
-              <button type="button" class="btn-primary btn-sm no-print" onclick="openNewRitmModal()">+ Novo Chamado</button>
+              <button type="button" class="btn-primary btn-sm no-print" onclick="openNewRitmModal()">+ Novo
+                Chamado</button>
             </div>
             <div class="table-scroll">
               <table class="table-dense">
@@ -379,21 +405,26 @@
       <div class="modal-header">
         <h3 id="modal-activity-title">Novo Cadastro — Atividade</h3>
         <button type="button" class="btn-icon" onclick="closeModal('modal-activity')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
       </div>
       <form id="activity-form" onsubmit="handleSaveActivity(event)">
         <input type="hidden" id="act-edit-id">
         <div class="modal-body">
-          <div class="form-section-title">1. Estrutura WBS (PD Gente — XP)</div>
+          <div class="form-section-title">1. Estrutura WBS</div>
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" for="act-system">Nível 1 — Sistema / Módulo</label>
-              <input type="text" class="form-input" id="act-system" list="dl-systems" placeholder="Ex: SAP Recruiting" required>
+              <input type="text" class="form-input" id="act-system" list="dl-systems" placeholder="Ex: SAP Recruiting"
+                required>
             </div>
             <div class="form-group">
               <label class="form-label" for="act-macro">Nível 2 — Macroatividade</label>
-              <input type="text" class="form-input" id="act-macro" list="dl-macros" placeholder="Ex: A - Convivência &amp; Migração de Dados" required>
+              <input type="text" class="form-input" id="act-macro" list="dl-macros"
+                placeholder="Ex: A - Convivência &amp; Migração de Dados" required>
             </div>
           </div>
 
@@ -405,14 +436,16 @@
             </div>
             <div class="form-group">
               <label class="form-label" for="act-title">Nível 3 — Microatividade</label>
-              <input type="text" class="form-input" id="act-title" placeholder="Ex: Mapeamento de acessos R&amp;S" required>
+              <input type="text" class="form-input" id="act-title" placeholder="Ex: Mapeamento de acessos R&amp;S"
+                required>
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" for="act-resp-name">Responsável</label>
-              <input type="text" class="form-input" id="act-resp-name" list="dl-users-names" placeholder="Nome do responsável" required onchange="syncResponsibleEmailFromName()">
+              <input type="text" class="form-input" id="act-resp-name" list="dl-users-names"
+                placeholder="Nome do responsável" required onchange="syncResponsibleEmailFromName()">
             </div>
             <div class="form-group">
               <label class="form-label" for="act-resp-email">E-mail do Responsável</label>
@@ -451,19 +484,23 @@
             <div class="form-group">
               <label class="form-label" for="act-progress">Progresso (%)</label>
               <div style="display:flex;align-items:center;gap:8px;height:34px;">
-                <input type="range" min="0" max="100" value="0" id="act-progress" oninput="document.getElementById('act-progress-val').textContent = this.value + '%'" style="flex:1;">
-                <span class="font-mono tabular-nums" id="act-progress-val" style="font-weight:700;min-width:38px;text-align:right;">0%</span>
+                <input type="range" min="0" max="100" value="0" id="act-progress"
+                  oninput="document.getElementById('act-progress-val').textContent = this.value + '%'" style="flex:1;">
+                <span class="font-mono tabular-nums" id="act-progress-val"
+                  style="font-weight:700;min-width:38px;text-align:right;">0%</span>
               </div>
             </div>
           </div>
 
           <div class="form-group" style="margin-bottom:0;">
             <label class="form-label" for="act-notes">Observações / Impedimentos (opcional)</label>
-            <textarea class="form-textarea" id="act-notes" rows="2" placeholder="Pré-requisitos, dependências ou bloqueios..."></textarea>
+            <textarea class="form-textarea" id="act-notes" rows="2"
+              placeholder="Pré-requisitos, dependências ou bloqueios..."></textarea>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn-danger hidden" id="act-delete-btn" onclick="deleteActivityFromModal()">Excluir</button>
+          <button type="button" class="btn-danger hidden" id="act-delete-btn"
+            onclick="deleteActivityFromModal()">Excluir</button>
           <div style="display:flex;gap:8px;margin-left:auto;">
             <button type="button" class="btn-secondary" onclick="closeModal('modal-activity')">Cancelar</button>
             <button type="submit" class="btn-primary">Salvar Atividade</button>
@@ -481,7 +518,10 @@
       <div class="modal-header">
         <h3 id="modal-ritm-title">Registrar Chamado / Defeito (Hypercare)</h3>
         <button type="button" class="btn-icon" onclick="closeModal('modal-ritm')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
       </div>
       <form id="ritm-form" onsubmit="handleSaveRitm(event)">
@@ -494,7 +534,8 @@
             </div>
             <div class="form-group">
               <label class="form-label" for="ritm-system">Sistema / Módulo</label>
-              <input type="text" class="form-input" id="ritm-system" list="dl-systems" placeholder="Ex: Admissão Digital" required>
+              <input type="text" class="form-input" id="ritm-system" list="dl-systems"
+                placeholder="Ex: Admissão Digital" required>
             </div>
             <div class="form-group">
               <label class="form-label" for="ritm-severity">Severidade</label>
@@ -540,7 +581,8 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn-danger hidden" id="ritm-delete-btn" onclick="deleteRitmFromModal()">Excluir</button>
+          <button type="button" class="btn-danger hidden" id="ritm-delete-btn"
+            onclick="deleteRitmFromModal()">Excluir</button>
           <div style="display:flex;gap:8px;margin-left:auto;">
             <button type="button" class="btn-secondary" onclick="closeModal('modal-ritm')">Cancelar</button>
             <button type="submit" class="btn-primary">Salvar Chamado</button>
@@ -561,4 +603,5 @@
   <!-- Script único na raiz (compatível com file:// e deploy estático) -->
   <script src="app.js"></script>
 </body>
+
 </html>
